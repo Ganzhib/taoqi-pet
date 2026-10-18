@@ -16,6 +16,25 @@ html, body {
   height: 100%;
 }
 
+.focus-badge {
+  position: absolute;
+  z-index: 6;
+  top: 5px;
+  left: 50%;
+  padding: 4px 9px;
+  border: 2px solid #49375d;
+  border-radius: 12px;
+  background: #fffdf7;
+  color: #49375d;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.focus-badge[hidden] { display: none; }
+
 .bubble {
   position: absolute;
   z-index: 5;
@@ -37,6 +56,7 @@ html, body {
 }
 
 .bubble.visible { opacity: 1; transform: translate(-50%, 0); }
+.stage:has(.focus-badge:not([hidden])) .bubble { top: 38px; }
 
 .pet {
   position: absolute;
@@ -221,6 +241,7 @@ html, body {
 .pet[data-reaction="tap"] .head { animation: hop .38s ease-out 2 alternate; }
 .pet[data-reaction="double"] .head { animation: hop .3s ease-out 4 alternate; }
 .pet[data-reaction="long"] .head { animation: nuzzle .65s ease-in-out; }
+.pet.quiet .tail, .pet.quiet .eye { animation: none; }
 .pet.focused { filter: drop-shadow(0 10px 5px #34264a30) saturate(.7); }
 
 @keyframes wag { 50% { transform: rotate(16deg); } }

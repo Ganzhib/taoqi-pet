@@ -1,6 +1,7 @@
 const pet = document.getElementById("pet");
 const bubble = document.getElementById("bubble");
 const hint = document.querySelector(".hint");
+const focusBadge = document.getElementById("focus-badge");
 const reactions = {
   caramel: {
     tap: ["你好呀！", "今天也一起加油！", "我在这里陪你。"],
@@ -27,6 +28,9 @@ let pointerStart = null;
 let moved = false;
 let longPressed = false;
 let lastTapAt = 0;
+let quietMode = false;
+let focusEndsAt = null;
+let focusTick = null;
 
 function showBubble(message) {
   bubble.textContent = message;
@@ -49,11 +53,29 @@ function react(kind) {
   showBubble(message);
 }
 
+function updateFocusBadge() {
+  if (focusEndsAt === null) {
+    focusBadge.hidden = true;
+    return;
+  }
+  const seconds = Math.max(0, Math.ceil((focusEndsAt - Date.now()) / 1000));
+  const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const rest = String(seconds % 60).padStart(2, "0");
+  focusBadge.textContent = "专注 " + minutes + ":" + rest;
+  focusBadge.hidden = false;
+}
+
 function applyState(state) {
   characterId = state.characterId;
+  quietMode = state.quietMode;
+  focusEndsAt = state.focusEndsAt;
   pet.dataset.character = characterId;
   pet.classList.toggle("focused", state.focusActive);
+  pet.classList.toggle("quiet", quietMode);
   pet.style.scale = state.scale;
+  clearInterval(focusTick);
+  updateFocusBadge();
+  if (focusEndsAt !== null) focusTick = setInterval(updateFocusBadge, 1000);
 }
 
 pet.addEventListener("pointerdown", (event) => {
@@ -107,7 +129,9 @@ pet.addEventListener("keydown", (event) => {
 window.taoqiPet.onMotion((motion) => {
   pet.classList.toggle("walking", motion === "walk");
 });
-window.taoqiPet.onNotice(showBubble);
+window.taoqiPet.onNotice((message) => {
+  if (!quietMode) showBubble(message);
+});
 window.taoqiPet.onState(applyState);
 window.taoqiPet.getState().then(applyState);
 
