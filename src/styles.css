@@ -49,6 +49,24 @@ html, body {
   outline: none;
   touch-action: none;
   filter: drop-shadow(0 10px 5px #34264a30);
+  --fur: #f7c778;
+  --belly: #fff0cf;
+  --inner-ear: #ee9da0;
+  --cheek: #efa8a4;
+}
+
+.pet[data-character="night"] {
+  --fur: #9187c5;
+  --belly: #e5dcf4;
+  --inner-ear: #c5a6de;
+  --cheek: #e1afd0;
+}
+
+.pet[data-character="mint"] {
+  --fur: #92d4b8;
+  --belly: #e1f6e7;
+  --inner-ear: #e9a7b8;
+  --cheek: #edacb9;
 }
 
 .pet:active { cursor: grabbing; }
@@ -76,7 +94,7 @@ html, body {
   height: 105px;
   border: 5px solid #49375d;
   border-radius: 52% 52% 42% 42%;
-  background: #f7c778;
+  background: var(--fur);
 }
 
 .body::after {
@@ -87,7 +105,7 @@ html, body {
   width: 51px;
   height: 61px;
   border-radius: 50%;
-  background: #fff0cf;
+  background: var(--belly);
 }
 
 .head {
@@ -99,7 +117,7 @@ html, body {
   height: 116px;
   border: 5px solid #49375d;
   border-radius: 46% 46% 48% 48%;
-  background: #f7c778;
+  background: var(--fur);
 }
 
 .ear {
@@ -110,7 +128,7 @@ html, body {
   height: 64px;
   border: 5px solid #49375d;
   border-radius: 8px 80% 0 0;
-  background: #f7c778;
+  background: var(--fur);
 }
 
 .ear::after {
@@ -118,7 +136,7 @@ html, body {
   position: absolute;
   inset: 11px 8px 9px;
   border-radius: inherit;
-  background: #ee9da0;
+  background: var(--inner-ear);
 }
 
 .ear-left { left: 3px; transform: rotate(-18deg); }
@@ -166,7 +184,7 @@ html, body {
   width: 21px;
   height: 10px;
   border-radius: 50%;
-  background: #efa8a4;
+  background: var(--cheek);
   opacity: .7;
 }
 .cheek-left { left: 12px; }
@@ -180,7 +198,7 @@ html, body {
   height: 26px;
   border: 5px solid #49375d;
   border-radius: 48%;
-  background: #f7c778;
+  background: var(--fur);
 }
 .paw-left { left: 24px; }
 .paw-right { right: 20px; }
@@ -200,14 +218,17 @@ html, body {
 .hint.hidden { opacity: 0; }
 
 .pet.walking { animation: walk .28s ease-in-out infinite alternate; }
-.pet.happy .head { animation: hop .38s ease-out 2 alternate; }
+.pet[data-reaction="tap"] .head { animation: hop .38s ease-out 2 alternate; }
+.pet[data-reaction="double"] .head { animation: hop .3s ease-out 4 alternate; }
+.pet[data-reaction="long"] .head { animation: nuzzle .65s ease-in-out; }
 .pet.focused { filter: drop-shadow(0 10px 5px #34264a30) saturate(.7); }
 
 @keyframes wag { 50% { transform: rotate(16deg); } }
 @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
 @keyframes walk { to { transform: translateX(-50%) translateY(-5px) rotate(2deg); } }
 @keyframes hop { to { transform: translateY(-8px); } }
+@keyframes nuzzle { 50% { transform: rotate(-7deg) translateY(5px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .tail, .eye, .pet.walking, .pet.happy .head { animation: none; }
+  .tail, .eye, .pet.walking, .pet[data-reaction] .head { animation: none; }
 }

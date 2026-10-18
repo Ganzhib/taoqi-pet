@@ -1,5 +1,11 @@
 const TOOLBOX_URL = "https://next.ganzhibin.icu/?utm_source=taoqi_pet&utm_medium=app&utm_content=toolbox";
 
+const CHARACTERS = [
+  { id: "caramel", name: "焦糖猫" },
+  { id: "night", name: "星夜猫" },
+  { id: "mint", name: "薄荷猫" },
+];
+
 function clampToWorkArea(bounds, workArea) {
   const maxX = Math.max(workArea.x, workArea.x + workArea.width - bounds.width);
   const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
@@ -10,4 +16,4 @@ function clampToWorkArea(bounds, workArea) {
   };
 }
 
-module.exports = { TOOLBOX_URL, clampToWorkArea };
+module.exports = { TOOLBOX_URL, CHARACTERS, clampToWorkArea };
