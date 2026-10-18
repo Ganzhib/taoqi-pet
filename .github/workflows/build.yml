@@ -8,6 +8,8 @@ on:
       - "assets/**"
       - "build/**"
       - "package.json"
+      - "tsconfig.json"
+      - "vite.config.mjs"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 

@@ -10,6 +10,8 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+#root { width: 100%; height: 100%; }
+
 .stage {
   position: relative;
   width: 100%;

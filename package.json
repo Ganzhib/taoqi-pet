@@ -4,19 +4,25 @@
   "description": "A free desktop pet and companion.",
   "private": true,
   "license": "MIT",
-  "main": "src/main.js",
+  "main": "src/electron/main.js",
   "scripts": {
-    "start": "electron .",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/pet-core.js && node --check src/market-preload.js && node --check src/market.js && node --check tests/electron-smoke.js",
+    "start": "npm run build:ui && electron .",
+    "build:ui": "tsc --noEmit && vite build",
+    "check": "node --check src/electron/main.js && node --check src/electron/pet-core.js && node --check src/electron/preloads/pet.js && node --check src/electron/preloads/market.js && node --check src/electron/preloads/home.js && node --check tests/electron-smoke.js && tsc --noEmit",
     "test": "node --test tests/*.test.js",
-    "pack": "electron-builder --dir --publish never",
-    "dist": "electron-builder --publish never",
-    "smoke": "node tests/electron-smoke.js"
+    "smoke": "npm run build:ui && node tests/electron-smoke.js",
+    "pack": "npm run build:ui && electron-builder --dir --publish never",
+    "dist": "npm run build:ui && electron-builder --publish never"
   },
   "devDependencies": {
     "electron": "42.11.12",
     "electron-builder": "26.17.0",
-    "playwright": "1.64.1"
+    "playwright": "1.64.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
   },
   "author": {
     "name": "Ganzhibin",
@@ -31,7 +37,8 @@
       "output": "dist"
     },
     "files": [
-      "src/**",
+      "src/electron/**",
+      "dist-ui/**",
       "assets/**",
       "LICENSE"
     ],
@@ -93,5 +100,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   }
 }

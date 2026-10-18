@@ -2,7 +2,7 @@ const { app, BrowserWindow, Menu, Tray, dialog, ipcMain, nativeImage, screen, sh
 const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, detectImageType, isValidCustomPet, clampToWorkArea } = require("./pet-core");
+const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, HOME_THEMES, HOME_FURNITURE, detectImageType, isValidCustomPet, clampToWorkArea } = require("./pet-core");
 
 const BASE_SIZE = { width: 240, height: 280 };
 const DEFAULT_SETTINGS = {
@@ -13,15 +13,19 @@ const DEFAULT_SETTINGS = {
   characterId: "caramel",
   decorationId: "none",
   customPets: [],
+  homeThemeId: "sunny",
+  homeFurnitureId: "cushion",
+  bestCatch: 0,
   position: null,
   focusEndsAt: null,
 };
 const FOCUS_DURATION_MS = 25 * 60 * 1000;
-const ICON_PATH = path.join(__dirname, "../assets/icon.png");
+const ICON_PATH = path.join(__dirname, "../../assets/icon.png");
 
 let petWindow;
 let tray;
 let marketWindow = null;
+let homeWindow = null;
 let settings;
 let dragOrigin = null;
 let walkTimeout = null;
@@ -55,6 +59,12 @@ function readSettings() {
       customPets,
       decorationId: DECORATIONS.some((decoration) => decoration.id === saved.decorationId)
         ? saved.decorationId : DEFAULT_SETTINGS.decorationId,
+      homeThemeId: HOME_THEMES.some((theme) => theme.id === saved.homeThemeId)
+        ? saved.homeThemeId : DEFAULT_SETTINGS.homeThemeId,
+      homeFurnitureId: HOME_FURNITURE.some((furniture) => furniture.id === saved.homeFurnitureId)
+        ? saved.homeFurnitureId : DEFAULT_SETTINGS.homeFurnitureId,
+      bestCatch: Number.isInteger(saved.bestCatch) && saved.bestCatch >= 0
+        ? saved.bestCatch : DEFAULT_SETTINGS.bestCatch,
       position: saved.position && Number.isFinite(saved.position.x) && Number.isFinite(saved.position.y)
         ? { x: Math.round(saved.position.x), y: Math.round(saved.position.y) } : null,
       focusEndsAt: Number.isFinite(saved.focusEndsAt) &&
@@ -160,6 +170,7 @@ function updateSettings(patch) {
   sendState();
   if ("roaming" in patch || "quietMode" in patch) scheduleWalk();
   updateTrayMenu();
+  notifyHome();
 }
 
 function scheduleFocusEnd() {
@@ -198,6 +209,25 @@ function getCatalog() {
   };
 }
 
+function getHomeState() {
+  const character = [...CHARACTERS, ...settings.customPets]
+    .find((pet) => pet.id === settings.characterId);
+  return {
+    characterId: settings.characterId,
+    characterName: character.name,
+    decorationId: settings.decorationId,
+    themeId: settings.homeThemeId,
+    furnitureId: settings.homeFurnitureId,
+    bestCatch: settings.bestCatch,
+  };
+}
+
+function notifyHome() {
+  if (homeWindow && !homeWindow.isDestroyed()) {
+    homeWindow.webContents.send("home:state", getHomeState());
+  }
+}
+
 function notifyMarket() {
   if (marketWindow && !marketWindow.isDestroyed()) {
     marketWindow.webContents.send("market:catalog", getCatalog());
@@ -209,7 +239,7 @@ function getArtwork(id) {
   const custom = settings.customPets.find((pet) => pet.id === id);
   if (!builtIn && !custom) return null;
   const file = builtIn
-    ? path.join(__dirname, "../assets/pets", builtIn.id + ".svg")
+    ? path.join(__dirname, "../../assets/pets", builtIn.id + ".svg")
     : customPetPath(custom);
   const mime = builtIn ? "image/svg+xml"
     : IMAGE_TYPES.find((type) => type.extension === custom.extension).mime;
@@ -253,6 +283,7 @@ async function importCustomPet() {
   saveSettings();
   sendState();
   notifyMarket();
+  notifyHome();
   return pet.id;
 }
 
@@ -264,6 +295,7 @@ function renameCustomPet(id, value) {
   pet.name = name;
   saveSettings();
   notifyMarket();
+  notifyHome();
   return true;
 }
 
@@ -286,6 +318,7 @@ async function removeCustomPet(id) {
   saveSettings();
   sendState();
   notifyMarket();
+  notifyHome();
   return true;
 }
 
@@ -303,15 +336,40 @@ function openMarket() {
     icon: ICON_PATH,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, "market-preload.js"),
+      preload: path.join(__dirname, "preloads/market.js"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
     },
   });
   marketWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  marketWindow.loadFile(path.join(__dirname, "market.html"));
+  marketWindow.loadFile(path.join(__dirname, "../../dist-ui/market.html"));
   marketWindow.on("closed", () => { marketWindow = null; });
+}
+
+function openHome() {
+  if (homeWindow && !homeWindow.isDestroyed()) {
+    homeWindow.focus();
+    return;
+  }
+  homeWindow = new BrowserWindow({
+    width: 900,
+    height: 690,
+    minWidth: 720,
+    minHeight: 590,
+    title: "淘气小窝",
+    icon: ICON_PATH,
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preloads/home.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  homeWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  homeWindow.loadFile(path.join(__dirname, "../../dist-ui/home.html"));
+  homeWindow.on("closed", () => { homeWindow = null; });
 }
 
 function performActivity(action) {
@@ -325,7 +383,7 @@ function showHelp() {
     type: "info",
     title: "淘气桌宠使用帮助",
     message: "陪伴，随时由你决定",
-    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场。安静模式会暂停游走和自动提示。工具铺只会在你点击后打开。",
+    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场，按 H 可进入小窝。安静模式会暂停游走和自动提示。工具铺只会在你点击后打开。",
     buttons: ["知道了"],
   });
 }
@@ -377,6 +435,7 @@ function menuTemplate() {
   const items = [
     { label: petWindow.isVisible() ? "隐藏宠物" : "显示宠物", click: togglePetVisibility },
     { label: "宠物市场…", click: openMarket },
+    { label: "淘气小窝…", click: openHome },
     { label: "快速切换角色", submenu: CHARACTERS.map((character) => ({
       label: character.name,
       type: "radio",
@@ -489,14 +548,14 @@ function createPetWindow() {
     backgroundColor: "#00000000",
     icon: ICON_PATH,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preloads/pet.js"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
     },
   });
   petWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  petWindow.loadFile(path.join(__dirname, "index.html"));
+  petWindow.loadFile(path.join(__dirname, "../../dist-ui/index.html"));
   petWindow.webContents.on("did-finish-load", sendState);
   petWindow.once("ready-to-show", showPet);
   petWindow.on("close", (event) => {
@@ -545,8 +604,29 @@ if (!app.requestSingleInstanceLock()) {
     });
     ipcMain.handle("market:remove", (_event, id) => removeCustomPet(id));
     ipcMain.handle("market:rename", (_event, id, name) => renameCustomPet(id, name));
+    ipcMain.handle("home:get-state", getHomeState);
+    ipcMain.handle("home:set-theme", (_event, id) => {
+      if (!HOME_THEMES.some((theme) => theme.id === id)) return false;
+      updateSettings({ homeThemeId: id });
+      return true;
+    });
+    ipcMain.handle("home:set-furniture", (_event, id) => {
+      if (!HOME_FURNITURE.some((furniture) => furniture.id === id)) return false;
+      updateSettings({ homeFurnitureId: id });
+      return true;
+    });
+    ipcMain.handle("home:save-score", (_event, score) => {
+      if (!Number.isInteger(score) || score < 0) return settings.bestCatch;
+      if (score > settings.bestCatch) {
+        settings.bestCatch = score;
+        saveSettings();
+        notifyHome();
+      }
+      return settings.bestCatch;
+    });
     ipcMain.on("pet:show-menu", showPetMenu);
     ipcMain.on("pet:open-market", openMarket);
+    ipcMain.on("pet:open-home", openHome);
     ipcMain.on("pet:drag-start", beginDrag);
     ipcMain.on("pet:drag-move", moveDrag);
     ipcMain.on("pet:drag-end", endDrag);

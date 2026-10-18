@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, detectImageType, isValidCustomPet, clampToWorkArea } = require("../src/pet-core");
+const { TOOLBOX_URL, CHARACTERS, detectImageType, isValidCustomPet, clampToWorkArea } = require("../src/electron/pet-core");
 
 test("pet stays visible on a display with a negative origin", () => {
   const area = { x: -1920, y: 0, width: 1920, height: 1080 };

@@ -70,15 +70,49 @@ async function run() {
     await market.locator(".empty").waitFor();
     await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "caramel");
 
+    await market.close();
+    const homeOpened = application.waitForEvent("window");
+    await pet.locator("#pet").press("h");
+    const home = await homeOpened;
+    home.on("pageerror", (error) => pageErrors.push("home: " + error.message));
+    await home.locator("#room-pet-art").waitFor();
+    await home.waitForFunction(() => document.getElementById("room-pet-art").naturalWidth > 0);
+    assert.equal(await home.title(), "淘气小窝");
+
+    await home.locator('#theme-options [data-theme="night"]').click();
+    await home.locator('#furniture-options [data-furniture="box"]').click();
+    await home.waitForFunction(() =>
+      document.getElementById("room").dataset.theme === "night" &&
+      document.getElementById("furniture").dataset.furniture === "box"
+    );
+    await home.getByRole("button", { name: "抱抱" }).click();
+    await home.locator('#room-pet[data-reaction="hug"]').waitFor();
+    await home.getByRole("button", { name: "开始抓鱼" }).click();
+    await home.getByRole("button", { name: "抓住小鱼" }).click();
+    await home.getByRole("button", { name: "结束本局" }).click();
+    await home.waitForFunction(() => document.getElementById("best-score").textContent === "最佳 1 条");
+    await home.screenshot({ path: "artifacts/home.png" });
+
+    await home.close();
+    const homeReopened = application.waitForEvent("window");
+    await pet.locator("#pet").press("h");
+    const savedHome = await homeReopened;
+    savedHome.on("pageerror", (error) => pageErrors.push("home: " + error.message));
+    await savedHome.waitForFunction(() =>
+      document.getElementById("room").dataset.theme === "night" &&
+      document.getElementById("furniture").dataset.furniture === "box" &&
+      document.getElementById("best-score").textContent === "最佳 1 条"
+    );
+
     const hidden = await application.evaluate(({ BrowserWindow }) => {
       const window = BrowserWindow.getAllWindows()
-        .find((item) => item.webContents.getURL().endsWith("/src/index.html"));
+        .find((item) => item.webContents.getURL().endsWith("/dist-ui/index.html"));
       window.close();
       return !window.isDestroyed() && !window.isVisible();
     });
     assert.equal(hidden, true, "关闭桌宠窗口后应保留托盘中的进程");
     assert.deepEqual(pageErrors, []);
-    process.stdout.write("Electron smoke test passed: pet, market, import, rename, delete, tray hide.\n");
+    process.stdout.write("Electron smoke test passed: pet, market, import, rename, delete, home, game, tray hide.\n");
   } finally {
     await application.close();
     fs.rmSync(profile, { recursive: true, force: true });

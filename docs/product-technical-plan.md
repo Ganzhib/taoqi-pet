@@ -16,18 +16,19 @@
 
 ## 3. 当前代码结构
 
-| 文件 | 职责 |
+| 目录 | 职责 |
 | --- | --- |
-| src/main.js | Electron 生命周期、宠物窗口、菜单、位置与本地设置 |
-| src/preload.js、src/market-preload.js | 分别向宠物窗口和市场窗口暴露有限的 IPC 能力 |
-| src/renderer.js | 点击、拖拽、气泡、专注计时与角色视觉状态 |
-| src/market.html、src/market.css、src/market.js | 免费宠物市场的分类、预览、选用与自定义管理 |
-| src/pet-core.js | 工作区边界及受控工具地址 |
-| src/index.html、src/styles.css | 宠物结构与动画 |
-| assets/pets/*.svg、build/icon.svg | 项目内置角色和应用图标 |
-| tests/pet-core.test.js | 工作区边界与链接不变量 |
+| src/electron/main.js | Electron 生命周期、窗口、菜单、本地设置与 IPC |
+| src/electron/preloads/ | 桌宠、市场和小窝各自的最小桥接 |
+| src/electron/pet-core.js | 角色元数据、工作区边界与受控工具地址 |
+| src/ui/pet/ | React 桌宠界面、角色台词与动画 |
+| src/ui/market/ | React 免费宠物市场 |
+| src/ui/home/ | React 小窝、布置和抓鱼游戏 |
+| src/ui/shared/ | 桥接 TypeScript 契约与共用 Hook |
+| assets/pets/*.svg、build/icon.svg | 项目内置角色与应用图标 |
+| tests/ | 核心逻辑测试与真实 Electron 窗口验收 |
 
-宠物窗口保持透明、无边框，市场使用普通窗口；主进程负责窗口坐标、用户图片副本和外部浏览器，渲染进程负责动画与市场展示。使用 contextIsolation 和 preload，页面不直接调用 Node API。工具入口地址定义在主进程可访问的固定配置中，渲染进程不能传入任意 URL。
+Vite 从 `src/ui/` 的三个 HTML 入口构建到 `dist-ui/`，Electron 加载构建后的本地页面。主进程负责窗口坐标、用户图片副本和外部浏览器；React 负责动画、市场、小窝和临时交互状态。页面通过 contextIsolation 和独立 preload 调用有限 IPC，不直接调用 Node API。目录和文件命名规则见 [代码结构与命名约定](code-structure.md)。
 
 ## 4. 里程碑
 
@@ -40,7 +41,7 @@
 
 验收：首次启动不出现配置弹窗；拖动优先于游走；暂停或专注时不游走；地址只指向工具铺；退出后不遗留定时器。
 
-### M1：角色与体验
+### M1：角色与体验（核心完成）
 
 - 已加入八位项目内原创 SVG 角色、免费宠物市场、装扮和主动互动。
 - 已加入用户本地图片导入、选用、改名与删除；不上传用户素材。
@@ -48,10 +49,11 @@
 - 待完善中、英、日文案与辅助功能。
 - 待完成 Windows、macOS、Linux 安装包的实机验收和发布签名。
 
-### M2：长期留存
+### M2：长期留存（进行中）
 
-- 免费的小窝、更多装饰和可视化角色创作工具。
-- 低频且可关闭的打盹、玩耍等动作。
+- 已加入免费小窝：三种场景、三件家具、抱抱/跳舞/打盹和 20 秒抓鱼小游戏，布置与最佳成绩仅保存在本机。
+- 待做可视化角色创作工具与更多小窝装饰。
+- 待做桌面上的低频且可关闭的打盹、玩耍等自主动作。
 - 用户自愿启用的外部产品联动。
 - 根据明确告知与退出机制设计匿名统计；不采集聊天或设备身份数据。
 

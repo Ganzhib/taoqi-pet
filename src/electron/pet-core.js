@@ -18,6 +18,18 @@ const DECORATIONS = [
   { id: "flower", name: "小花" },
 ];
 
+const HOME_THEMES = [
+  { id: "sunny", name: "晴日小窝" },
+  { id: "night", name: "星夜小窝" },
+  { id: "candy", name: "糖果小窝" },
+];
+
+const HOME_FURNITURE = [
+  { id: "cushion", name: "软软坐垫" },
+  { id: "box", name: "秘密纸箱" },
+  { id: "cloud", name: "云朵沙发" },
+];
+
 const IMAGE_TYPES = [
   { extension: "png", mime: "image/png", matches: (bytes) =>
     bytes.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex")) },
@@ -49,4 +61,4 @@ function clampToWorkArea(bounds, workArea) {
   };
 }
 
-module.exports = { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, detectImageType, isValidCustomPet, clampToWorkArea };
+module.exports = { TOOLBOX_URL, CHARACTERS, DECORATIONS, HOME_THEMES, HOME_FURNITURE, IMAGE_TYPES, detectImageType, isValidCustomPet, clampToWorkArea };
