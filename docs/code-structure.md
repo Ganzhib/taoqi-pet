@@ -10,6 +10,7 @@ src/
   electron/
     main.js             Electron 生命周期、菜单、窗口与 IPC 注册
     pet-core.js         无 Electron 依赖的业务常量与纯函数
+    settings-store.js   本地偏好的默认值、读取与保存
     preloads/
       pet.js            桌宠窗口的最小桥接
       market.js         市场窗口的最小桥接
@@ -52,7 +53,7 @@ tests/
 ## 边界
 
 - React 页面不直接访问 Node、文件系统、Shell 或 Electron API；通过 `window.taoqiPet`、`window.petMarket`、`window.taoqiHome` 调用 preload 的有限能力。
-- 主进程拥有持久设置、窗口、文件副本和外部链接；页面只拥有临时界面状态，例如选中的筛选条件或一局游戏的倒计时。
+- 主进程拥有持久设置、窗口、文件副本和外部链接；`settings-store.js` 是持久偏好的唯一读写位置。页面只拥有临时界面状态，例如选中的筛选条件或一局游戏的倒计时。
 - 对用户图片、持久设置和外部链接在主进程入口验证。已经由类型和内部协议保证的数据，不在每层重复检查。
 - 订阅、定时器和拖拽各有明确的创建与清理位置。角色切换时的异步图片读取应忽略过期结果。
 - 所有宠物功能保持免费；外部产品只能由用户主动点击打开。

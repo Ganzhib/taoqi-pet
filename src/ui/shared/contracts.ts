@@ -1,5 +1,5 @@
 export type PetAction = "feed" | "play" | "praise";
-export type PetReaction = PetAction | "tap" | "double" | "long";
+export type PetReaction = PetAction | "tap" | "double" | "long" | "nap";
 
 export interface PetState {
   roaming: boolean;

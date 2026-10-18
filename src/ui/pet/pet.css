@@ -133,6 +133,7 @@ html, body {
 .pet[data-reaction="feed"] .pet-art { animation: nuzzle .4s ease-in-out 2; }
 .pet[data-reaction="play"] .pet-art { animation: dance .27s ease-in-out 4 alternate; }
 .pet[data-reaction="praise"] .pet-art { animation: celebrate .7s ease-in-out; }
+.pet[data-reaction="nap"] .pet-art { animation: nap 1.8s ease-in-out 2; }
 .pet.focused { filter: drop-shadow(0 9px 5px #34264a30) saturate(.7); }
 .pet.quiet:not([data-reaction]) .pet-art { animation: none; }
 
@@ -141,6 +142,7 @@ html, body {
 @keyframes hop { to { transform: translateY(-8px); } }
 @keyframes nuzzle { 50% { transform: rotate(-7deg) translateY(5px); } }
 @keyframes dance { to { transform: rotate(8deg) translateY(-5px); } }
+@keyframes nap { 50% { transform: rotate(-10deg) translateY(9px) scale(.94); } }
 @keyframes celebrate { 30% { transform: rotate(-9deg); } 70% { transform: rotate(9deg); } }
 
 @media (prefers-reduced-motion: reduce) {

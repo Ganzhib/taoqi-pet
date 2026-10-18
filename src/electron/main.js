@@ -2,24 +2,11 @@ const { app, BrowserWindow, Menu, Tray, dialog, ipcMain, nativeImage, screen, sh
 const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, HOME_THEMES, HOME_FURNITURE, detectImageType, isValidCustomPet, clampToWorkArea } = require("./pet-core");
+const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, HOME_THEMES, HOME_FURNITURE, detectImageType, clampToWorkArea } = require("./pet-core");
+
+const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSettings } = require("./settings-store");
 
 const BASE_SIZE = { width: 240, height: 280 };
-const DEFAULT_SETTINGS = {
-  roaming: true,
-  quietMode: false,
-  alwaysOnTop: true,
-  scale: 1,
-  characterId: "caramel",
-  decorationId: "none",
-  customPets: [],
-  homeThemeId: "sunny",
-  homeFurnitureId: "cushion",
-  bestCatch: 0,
-  position: null,
-  focusEndsAt: null,
-};
-const FOCUS_DURATION_MS = 25 * 60 * 1000;
 const ICON_PATH = path.join(__dirname, "../../assets/icon.png");
 
 let petWindow;
@@ -32,54 +19,6 @@ let walkTimeout = null;
 let walkInterval = null;
 let focusTimer = null;
 let isQuitting = false;
-
-function settingsPath() {
-  return path.join(app.getPath("userData"), "settings.json");
-}
-
-function customPetPath(pet) {
-  return path.join(app.getPath("userData"), "pets", pet.id + "." + pet.extension);
-}
-
-function readSettings() {
-  try {
-    const saved = JSON.parse(fs.readFileSync(settingsPath(), "utf8"));
-    const customPets = (Array.isArray(saved.customPets) ? saved.customPets : [])
-      .filter(isValidCustomPet)
-      .map((pet) => ({ id: pet.id, name: pet.name.trim().slice(0, 32), extension: pet.extension }))
-      .filter((pet) => fs.existsSync(customPetPath(pet)));
-    const now = Date.now();
-    return {
-      roaming: saved.roaming !== false,
-      quietMode: saved.quietMode === true,
-      alwaysOnTop: saved.alwaysOnTop !== false,
-      scale: [1, 1.25, 1.5].includes(saved.scale) ? saved.scale : 1,
-      characterId: [...CHARACTERS, ...customPets].some((character) => character.id === saved.characterId)
-        ? saved.characterId : DEFAULT_SETTINGS.characterId,
-      customPets,
-      decorationId: DECORATIONS.some((decoration) => decoration.id === saved.decorationId)
-        ? saved.decorationId : DEFAULT_SETTINGS.decorationId,
-      homeThemeId: HOME_THEMES.some((theme) => theme.id === saved.homeThemeId)
-        ? saved.homeThemeId : DEFAULT_SETTINGS.homeThemeId,
-      homeFurnitureId: HOME_FURNITURE.some((furniture) => furniture.id === saved.homeFurnitureId)
-        ? saved.homeFurnitureId : DEFAULT_SETTINGS.homeFurnitureId,
-      bestCatch: Number.isInteger(saved.bestCatch) && saved.bestCatch >= 0
-        ? saved.bestCatch : DEFAULT_SETTINGS.bestCatch,
-      position: saved.position && Number.isFinite(saved.position.x) && Number.isFinite(saved.position.y)
-        ? { x: Math.round(saved.position.x), y: Math.round(saved.position.y) } : null,
-      focusEndsAt: Number.isFinite(saved.focusEndsAt) &&
-        saved.focusEndsAt > now && saved.focusEndsAt <= now + FOCUS_DURATION_MS
-        ? saved.focusEndsAt : null,
-    };
-  } catch {
-    return { ...DEFAULT_SETTINGS };
-  }
-}
-
-function saveSettings() {
-  fs.mkdirSync(app.getPath("userData"), { recursive: true });
-  fs.writeFileSync(settingsPath(), JSON.stringify(settings, null, 2));
-}
 
 function windowSize() {
   return {
@@ -145,7 +84,7 @@ function persistPosition() {
   if (!petWindow || petWindow.isDestroyed()) return;
   const { x, y } = petWindow.getBounds();
   settings.position = { x, y };
-  saveSettings();
+  saveSettings(settings);
 }
 
 function keepPetVisible() {
@@ -161,7 +100,7 @@ function keepPetVisible() {
 
 function updateSettings(patch) {
   settings = { ...settings, ...patch };
-  saveSettings();
+  saveSettings(settings);
   if ("alwaysOnTop" in patch) petWindow.setAlwaysOnTop(settings.alwaysOnTop);
   if ("scale" in patch) {
     petWindow.setBounds({ ...petWindow.getBounds(), ...windowSize() });
@@ -178,7 +117,7 @@ function scheduleFocusEnd() {
   if (!isFocusActive()) return;
   focusTimer = setTimeout(() => {
     settings.focusEndsAt = null;
-    saveSettings();
+    saveSettings(settings);
     sendState();
     sendNotice("专注结束，休息一下吧！");
     scheduleWalk();
@@ -188,7 +127,7 @@ function scheduleFocusEnd() {
 
 function toggleFocus() {
   settings.focusEndsAt = isFocusActive() ? null : Date.now() + FOCUS_DURATION_MS;
-  saveSettings();
+  saveSettings(settings);
   scheduleFocusEnd();
   sendState();
   if (isFocusActive()) sendNotice("专注开始，我会安静陪着你。");
@@ -280,7 +219,7 @@ async function importCustomPet() {
   fs.writeFileSync(customPetPath(pet), bytes);
   settings.customPets.push(pet);
   settings.characterId = pet.id;
-  saveSettings();
+  saveSettings(settings);
   sendState();
   notifyMarket();
   notifyHome();
@@ -293,7 +232,7 @@ function renameCustomPet(id, value) {
   const name = value.trim().slice(0, 32);
   if (!name) return false;
   pet.name = name;
-  saveSettings();
+  saveSettings(settings);
   notifyMarket();
   notifyHome();
   return true;
@@ -315,7 +254,7 @@ async function removeCustomPet(id) {
   fs.rmSync(customPetPath(pet), { force: true });
   settings.customPets = settings.customPets.filter((entry) => entry.id !== id);
   if (settings.characterId === id) settings.characterId = DEFAULT_SETTINGS.characterId;
-  saveSettings();
+  saveSettings(settings);
   sendState();
   notifyMarket();
   notifyHome();
@@ -619,7 +558,7 @@ if (!app.requestSingleInstanceLock()) {
       if (!Number.isInteger(score) || score < 0) return settings.bestCatch;
       if (score > settings.bestCatch) {
         settings.bestCatch = score;
-        saveSettings();
+        saveSettings(settings);
         notifyHome();
       }
       return settings.bestCatch;

@@ -18,7 +18,8 @@
 
 | 目录 | 职责 |
 | --- | --- |
-| src/electron/main.js | Electron 生命周期、窗口、菜单、本地设置与 IPC |
+| src/electron/main.js | Electron 生命周期、窗口、菜单与 IPC |
+| src/electron/settings-store.js | 本地设置默认值、读取与保存 |
 | src/electron/preloads/ | 桌宠、市场和小窝各自的最小桥接 |
 | src/electron/pet-core.js | 角色元数据、工作区边界与受控工具地址 |
 | src/ui/pet/ | React 桌宠界面、角色台词与动画 |
@@ -53,7 +54,7 @@ Vite 从 `src/ui/` 的三个 HTML 入口构建到 `dist-ui/`，Electron 加载�
 
 - 已加入免费小窝：三种场景、三件家具、抱抱/跳舞/打盹和 20 秒抓鱼小游戏，布置与最佳成绩仅保存在本机。
 - 待做可视化角色创作工具与更多小窝装饰。
-- 待做桌面上的低频且可关闭的打盹、玩耍等自主动作。
+- 已加入桌面上的低频打盹与玩耍；暂停自主活动、安静模式和专注时停用。
 - 用户自愿启用的外部产品联动。
 - 根据明确告知与退出机制设计匿名统计；不采集聊天或设备身份数据。
 

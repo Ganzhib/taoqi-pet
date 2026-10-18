@@ -20,10 +20,13 @@ export function PetApp() {
   });
   const [focusText, setFocusText] = useState("");
   const [hintHidden, setHintHidden] = useState(false);
+  const [idleCycle, setIdleCycle] = useState(0);
+  const [visible, setVisible] = useState(!document.hidden);
   const artwork = useArtwork(state?.characterId ?? null, window.taoqiPet.getArtwork);
 
   const characterId = useRef("caramel");
   const quietMode = useRef(false);
+  const motionRef = useRef<"idle" | "walk">("idle");
   const tapIndex = useRef(0);
   const lastTapAt = useRef(0);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
@@ -44,11 +47,14 @@ export function PetApp() {
     if (kind === "tap") tapIndex.current++;
     setReaction((previous) => ({ kind, version: previous.version + 1 }));
     clearTimeout(reactionTimer.current);
-    const duration = kind === "double" || kind === "play" ? 1250 : 650;
+    let duration = 650;
+    if (kind === "nap") duration = 3500;
+    else if (kind === "double" || kind === "play") duration = 1250;
     reactionTimer.current = window.setTimeout(() => {
       setReaction((previous) => ({ ...previous, kind: null }));
     }, duration);
     showBubble(message);
+    setIdleCycle((value) => value + 1);
   }, [showBubble]);
 
   useEffect(() => {
@@ -58,7 +64,10 @@ export function PetApp() {
       setState(next);
     };
     const offState = window.taoqiPet.onState(applyState);
-    const offMotion = window.taoqiPet.onMotion(setMotion);
+    const offMotion = window.taoqiPet.onMotion((next) => {
+      motionRef.current = next;
+      setMotion(next);
+    });
     const offAction = window.taoqiPet.onAction(react);
     const offNotice = window.taoqiPet.onNotice((message) => {
       if (!quietMode.current) showBubble(message);
@@ -88,6 +97,25 @@ export function PetApp() {
     const interval = window.setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [state?.focusEndsAt]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  useEffect(() => {
+    if (!state?.roaming || state.quietMode || state.focusActive || !visible) return;
+    // One idle timer owns spontaneous actions; user interaction restarts it.
+    const timer = window.setTimeout(() => {
+      if (motionRef.current === "walk") {
+        setIdleCycle((value) => value + 1);
+        return;
+      }
+      react(Math.random() < 0.6 ? "nap" : "play");
+    }, 45000 + Math.random() * 45000);
+    return () => clearTimeout(timer);
+  }, [state?.roaming, state?.quietMode, state?.focusActive, visible, idleCycle, react]);
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;

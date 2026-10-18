@@ -70,5 +70,6 @@ export const reactions = {
 export function reactionMessage(characterId: string, kind: PetReaction, tapIndex: number): string {
   const character = reactions[characterId as keyof typeof reactions] ?? reactions.caramel;
   if (kind === "tap") return character.tap[tapIndex % character.tap.length];
+  if (kind === "nap") return "呼……让我打个小盹。";
   return character[kind];
 }
