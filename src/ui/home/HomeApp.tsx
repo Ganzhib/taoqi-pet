@@ -12,6 +12,8 @@ const furnitureOptions = [
   { id: "cushion", label: "软软坐垫" },
   { id: "box", label: "秘密纸箱" },
   { id: "cloud", label: "云朵沙发" },
+  { id: "rug", label: "星星地毯" },
+  { id: "basket", label: "编织小篮" },
 ];
 const reactions = {
   hug: "抱紧一点，再待一会儿～",

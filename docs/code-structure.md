@@ -10,6 +10,7 @@ src/
   electron/
     main.js             Electron 生命周期、菜单、窗口与 IPC 注册
     pet-core.js         无 Electron 依赖的业务常量与纯函数
+    character-generator.js 受控选项生成原创 SVG 角色
     settings-store.js   本地偏好的默认值、读取与保存
     preloads/
       pet.js            桌宠窗口的最小桥接
@@ -27,6 +28,7 @@ src/
     market/
       main.tsx
       MarketApp.tsx
+      CreatorPanel.tsx    可视化造型、颜色和表情选择
       market.css
     home/
       main.tsx

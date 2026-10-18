@@ -28,6 +28,8 @@ const HOME_FURNITURE = [
   { id: "cushion", name: "软软坐垫" },
   { id: "box", name: "秘密纸箱" },
   { id: "cloud", name: "云朵沙发" },
+  { id: "rug", name: "星星地毯" },
+  { id: "basket", name: "编织小篮" },
 ];
 
 const IMAGE_TYPES = [
@@ -48,7 +50,8 @@ function detectImageType(bytes) {
 function isValidCustomPet(pet) {
   return pet && /^custom-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(pet.id) &&
     typeof pet.name === "string" && pet.name.trim().length > 0 &&
-    IMAGE_TYPES.some((type) => type.extension === pet.extension);
+    (IMAGE_TYPES.some((type) => type.extension === pet.extension) ||
+      (pet.kind === "generated" && pet.extension === "svg"));
 }
 
 function clampToWorkArea(bounds, workArea) {

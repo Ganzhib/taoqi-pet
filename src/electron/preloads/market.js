@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld("petMarket", {
   getArtwork: (id) => ipcRenderer.invoke("market:artwork", id),
   select: (id) => ipcRenderer.invoke("market:select", id),
   importPet: () => ipcRenderer.invoke("market:import"),
+  previewGenerated: (options) => ipcRenderer.invoke("market:preview-generated", options),
+  createGenerated: (options) => ipcRenderer.invoke("market:create-generated", options),
   removePet: (id) => ipcRenderer.invoke("market:remove", id),
   renamePet: (id, name) => ipcRenderer.invoke("market:rename", id, name),
   onCatalog: (callback) => {

@@ -1,6 +1,6 @@
 {
   "name": "taoqi-pet",
-  "version": "0.1.0",
+  "version": "0.2.0-preview.1",
   "description": "A free desktop pet and companion.",
   "private": true,
   "license": "MIT",
@@ -8,7 +8,7 @@
   "scripts": {
     "start": "npm run build:ui && electron .",
     "build:ui": "tsc --noEmit && vite build",
-    "check": "node --check src/electron/main.js && node --check src/electron/pet-core.js && node --check src/electron/settings-store.js && node --check src/electron/preloads/pet.js && node --check src/electron/preloads/market.js && node --check src/electron/preloads/home.js && node --check tests/electron-smoke.js && tsc --noEmit",
+    "check": "node --check src/electron/main.js && node --check src/electron/pet-core.js && node --check src/electron/character-generator.js && node --check src/electron/settings-store.js && node --check src/electron/preloads/pet.js && node --check src/electron/preloads/market.js && node --check src/electron/preloads/home.js && node --check tests/electron-smoke.js && tsc --noEmit",
     "test": "node --test tests/*.test.js",
     "smoke": "npm run build:ui && node tests/electron-smoke.js",
     "pack": "npm run build:ui && electron-builder --dir --publish never",
@@ -77,24 +77,6 @@
           ]
         }
       ]
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "deb",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "category": "Utility",
-      "maintainer": "Ganzhibin <luli_0819@qq.com>"
     },
     "nsis": {
       "oneClick": false,

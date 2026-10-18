@@ -152,6 +152,23 @@ main {
   box-shadow: 0 8px 0 #49375d24;
 }
 
+.furniture[data-furniture="rug"] {
+  width: 240px;
+  height: 65px;
+  border: 4px solid #49375d;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #fff0a8 0 34px, #e0b7ee 35px 75px, #fff6cf 76px);
+  box-shadow: 0 7px 0 #49375d24;
+}
+.furniture[data-furniture="basket"] {
+  width: 205px;
+  height: 82px;
+  border: 4px solid #49375d;
+  border-radius: 12px 12px 56px 56px;
+  background: repeating-linear-gradient(25deg, #d9ac79 0 12px, #bc875e 13px 16px);
+  box-shadow: 0 8px 0 #49375d24;
+}
+
 .room-pet {
   position: absolute;
   z-index: 3;

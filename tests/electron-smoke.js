@@ -45,6 +45,23 @@ async function run() {
     await market.screenshot({ path: "artifacts/market.png" });
     await pet.screenshot({ path: "artifacts/pet.png" });
 
+    await application.evaluate(({ dialog }) => {
+      dialog.showMessageBox = async () => ({ response: 1 });
+    });
+    await market.locator("#open-creator").click();
+    await market.locator("#creator-name").fill("星星团子");
+    await market.getByRole("radio", { name: "团子" }).check();
+    await market.getByRole("radio", { name: "星星眼" }).check();
+    await market.locator("#create-pet").click();
+    await market.waitForFunction(() =>
+      document.querySelector(".pet-card h2")?.textContent === "星星团子"
+    );
+    await pet.waitForFunction(() =>
+      document.getElementById("pet-art").src.startsWith("data:image/svg+xml")
+    );
+    await market.getByRole("button", { name: "删除星星团子" }).click();
+    await market.locator(".empty").waitFor();
+
     const imagePath = path.join(process.cwd(), "assets/icon.png");
     await application.evaluate(({ dialog }, filePaths) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths });
@@ -80,10 +97,10 @@ async function run() {
     assert.equal(await home.title(), "淘气小窝");
 
     await home.locator('#theme-options [data-theme="night"]').click();
-    await home.locator('#furniture-options [data-furniture="box"]').click();
+    await home.locator('#furniture-options [data-furniture="basket"]').click();
     await home.waitForFunction(() =>
       document.getElementById("room").dataset.theme === "night" &&
-      document.getElementById("furniture").dataset.furniture === "box"
+      document.getElementById("furniture").dataset.furniture === "basket"
     );
     await home.getByRole("button", { name: "抱抱" }).click();
     await home.locator('#room-pet[data-reaction="hug"]').waitFor();
@@ -112,7 +129,7 @@ async function run() {
     });
     assert.equal(hidden, true, "关闭桌宠窗口后应保留托盘中的进程");
     assert.deepEqual(pageErrors, []);
-    process.stdout.write("Electron smoke test passed: pet, market, import, rename, delete, home, game, tray hide.\n");
+    process.stdout.write("Electron smoke test passed: pet, market, creator, import, rename, delete, home, game, tray hide.\n");
   } finally {
     await application.close();
     fs.rmSync(profile, { recursive: true, force: true });

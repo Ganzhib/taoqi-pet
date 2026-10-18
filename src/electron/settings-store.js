@@ -31,7 +31,8 @@ function readSettings() {
     const saved = JSON.parse(fs.readFileSync(settingsPath(), "utf8"));
     const customPets = (Array.isArray(saved.customPets) ? saved.customPets : [])
       .filter(isValidCustomPet)
-      .map((pet) => ({ id: pet.id, name: pet.name.trim().slice(0, 32), extension: pet.extension }))
+      .map((pet) => ({ id: pet.id, name: pet.name.trim().slice(0, 32), extension: pet.extension,
+        ...(pet.kind === "generated" ? { kind: "generated" } : {}) }))
       .filter((pet) => fs.existsSync(customPetPath(pet)));
     const now = Date.now();
     return {

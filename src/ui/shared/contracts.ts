@@ -12,6 +12,13 @@ export interface PetState {
   focusActive: boolean;
 }
 
+export interface GeneratedPetOptions {
+  name: string;
+  shape: "cat" | "dragon" | "bean";
+  color: string;
+  eyes: "round" | "sleepy" | "sparkle";
+}
+
 export interface CatalogPet {
   id: string;
   name: string;
@@ -54,6 +61,8 @@ interface MarketBridge {
   getArtwork(id: string): Promise<string | null>;
   select(id: string): Promise<boolean>;
   importPet(): Promise<string | null>;
+  previewGenerated(options: GeneratedPetOptions): Promise<string>;
+  createGenerated(options: GeneratedPetOptions): Promise<string>;
   removePet(id: string): Promise<boolean>;
   renamePet(id: string, name: string): Promise<boolean>;
   onCatalog(callback: (catalog: PetCatalog) => void): () => void;

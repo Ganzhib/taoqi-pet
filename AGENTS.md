@@ -18,6 +18,6 @@
 ## 验证与提交
 
 - 提交前运行 `npm run check`、`npm test`；界面变更还需让 GitHub CI 的 Electron smoke test 通过。
-- 安装包由 GitHub Actions 在 Windows、macOS、Linux 构建；不要把 `dist-ui/` 或 `dist/` 提交到仓库。
+- 安装包由 GitHub Actions 在 Windows、macOS 构建；不要把 `dist-ui/` 或 `dist/` 提交到仓库。
 - 当前开发按仓库所有者要求直接提交 `main`，无需 PR。提交信息用 `<type>(<scope>): 中文具体描述`。
 - 报告完成内容时区分：代码通过 CI、安装包构建成功、各系统实机验收。不能把其中一项当作另一项。

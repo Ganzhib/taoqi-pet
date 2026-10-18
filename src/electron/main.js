@@ -5,6 +5,7 @@ const path = require("node:path");
 const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, HOME_THEMES, HOME_FURNITURE, detectImageType, clampToWorkArea } = require("./pet-core");
 
 const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSettings } = require("./settings-store");
+const { renderPetSvg } = require("./character-generator");
 
 const BASE_SIZE = { width: 240, height: 280 };
 const ICON_PATH = path.join(__dirname, "../../assets/icon.png");
@@ -142,7 +143,7 @@ function getCatalog() {
       ...CHARACTERS.map((pet) => ({ ...pet, source: "built-in" })),
       ...settings.customPets.map((pet) => ({
         id: pet.id, name: pet.name, category: "我的创作",
-        description: "你导入的专属宠物。", source: "custom",
+        description: pet.kind === "generated" ? "你亲手设计的专属宠物。" : "你导入的专属宠物。", source: "custom",
       })),
     ],
   };
@@ -180,7 +181,7 @@ function getArtwork(id) {
   const file = builtIn
     ? path.join(__dirname, "../../assets/pets", builtIn.id + ".svg")
     : customPetPath(custom);
-  const mime = builtIn ? "image/svg+xml"
+  const mime = builtIn || custom.kind === "generated" ? "image/svg+xml"
     : IMAGE_TYPES.find((type) => type.extension === custom.extension).mime;
   try {
     return "data:" + mime + ";base64," + fs.readFileSync(file).toString("base64");
@@ -217,6 +218,22 @@ async function importCustomPet() {
   };
   fs.mkdirSync(path.dirname(customPetPath(pet)), { recursive: true });
   fs.writeFileSync(customPetPath(pet), bytes);
+  settings.customPets.push(pet);
+  settings.characterId = pet.id;
+  saveSettings(settings);
+  sendState();
+  notifyMarket();
+  notifyHome();
+  return pet.id;
+}
+
+function createGeneratedPet(options) {
+  const name = typeof options?.name === "string" ? options.name.trim().slice(0, 32) : "";
+  if (!name) throw new Error("请为宠物起个名字。");
+  const artwork = renderPetSvg(options);
+  const pet = { id: "custom-" + randomUUID(), name, extension: "svg", kind: "generated" };
+  fs.mkdirSync(path.dirname(customPetPath(pet)), { recursive: true });
+  fs.writeFileSync(customPetPath(pet), artwork);
   settings.customPets.push(pet);
   settings.characterId = pet.id;
   saveSettings(settings);
@@ -541,6 +558,9 @@ if (!app.requestSingleInstanceLock()) {
         return null;
       }
     });
+    ipcMain.handle("market:preview-generated", (_event, options) =>
+      "data:image/svg+xml;base64," + Buffer.from(renderPetSvg(options)).toString("base64"));
+    ipcMain.handle("market:create-generated", (_event, options) => createGeneratedPet(options));
     ipcMain.handle("market:remove", (_event, id) => removeCustomPet(id));
     ipcMain.handle("market:rename", (_event, id, name) => renameCustomPet(id, name));
     ipcMain.handle("home:get-state", getHomeState);

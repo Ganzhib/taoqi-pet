@@ -50,3 +50,9 @@ test("saved custom pet IDs cannot address paths outside the pet directory", () =
     extension: "png",
   }), false);
 });
+
+test("generated pet records accept only SVG created by the app", () => {
+  const id = "custom-12345678-1234-1234-1234-123456789abc";
+  assert.equal(isValidCustomPet({ id, name: "小伙伴", extension: "svg", kind: "generated" }), true);
+  assert.equal(isValidCustomPet({ id, name: "小伙伴", extension: "svg" }), false);
+});

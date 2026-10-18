@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { CatalogPet, PetCatalog } from "../shared/contracts";
 import { useArtwork } from "../shared/useArtwork";
+import { CreatorPanel } from "./CreatorPanel";
 import "./market.css";
 
 const categories = ["全部", "日常陪伴", "动漫感", "搞笑梗", "我的创作"];
@@ -79,6 +80,7 @@ export function MarketApp() {
   const [category, setCategory] = useState("全部");
   const [error, setError] = useState("");
   const [importing, setImporting] = useState(false);
+  const [creatorOpen, setCreatorOpen] = useState(false);
   const refreshVersion = useRef(0);
 
   const refresh = useCallback(async () => {
@@ -146,6 +148,13 @@ export function MarketApp() {
     }
   }
 
+  async function created() {
+    setCategory("我的创作");
+    setCreatorOpen(false);
+    await refresh();
+    setError("");
+  }
+
   const visible = catalog?.pets.filter((pet) => category === "全部" || pet.category === category) ?? [];
   const status = error || (catalog
     ? "共 " + catalog.pets.length + " 位小伙伴 · 当前陪伴：" +
@@ -161,10 +170,17 @@ export function MarketApp() {
           <p>原创角色、免费装扮，也欢迎带自己的图片来。</p>
           <span className="free-badge">全部免费 · 无账号 · 无付费解锁</span>
         </div>
-        <button id="import-pet" className="import-button" type="button"
-          disabled={importing} onClick={importPet}>＋ 导入我的宠物</button>
+        <div className="hero-actions">
+          <button id="open-creator" className="import-button" type="button"
+            aria-expanded={creatorOpen} onClick={() => setCreatorOpen((open) => !open)}>
+            ✦ 捏一个宠物
+          </button>
+          <button id="import-pet" className="import-button" type="button"
+            disabled={importing} onClick={importPet}>＋ 导入我的宠物</button>
+        </div>
       </header>
       <main>
+        {creatorOpen && <CreatorPanel onCreated={created} onClose={() => setCreatorOpen(false)} />}
         <nav className="filters" aria-label="宠物分类">
           {categories.map((name) => (
             <button type="button" key={name} data-category={name}
@@ -178,7 +194,7 @@ export function MarketApp() {
               onSelect={select} onRename={rename} onRemove={remove} />
           ))}
           {catalog && visible.length === 0 && (
-            <p className="empty">这里还没有宠物。点击右上角，导入你自己的图片吧。</p>
+            <p className="empty">这里还没有宠物。可以捏一个，也可以导入自己的图片。</p>
           )}
         </section>
       </main>

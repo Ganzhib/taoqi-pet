@@ -6,11 +6,11 @@
 
 ## 当前功能
 
-- Windows、macOS、Linux 桌面窗口基础支持
+- Windows、macOS 桌面窗口支持
 - 透明窗口、拖动、单击/双击/长按反馈、待机、低频游走，以及可随“暂停自主活动”关闭的打盹和玩耍
 - 宠物市场提供八位原创角色，含日常陪伴、动漫感和搞笑梗分类；全部免费
-- 支持导入自己的 PNG、JPG、GIF、WebP 图片作为宠物，保存在本机，可改名或删除
-- 淘气小窝支持三种场景、三件家具、抱抱/跳舞/打盹，以及免费的 20 秒抓鱼小游戏；小窝布置和最佳成绩只保存在本机
+- 支持可视化捏宠：自由组合小猫、小龙、团子造型、颜色与表情；也能导入自己的 PNG、JPG、GIF、WebP 图片。作品保存在本机，可改名或删除
+- 淘气小窝支持三种场景、五件家具、抱抱/跳舞/打盹，以及免费的 20 秒抓鱼小游戏；小窝布置和最佳成绩只保存在本机
 - 星星、蝴蝶结和小花等免费装扮
 - 可主动喂小鱼、陪玩或夸夸它；没有饥饿值、签到或付费解锁
 - 暂停游走、安静模式、置顶、调整大小、可恢复的 25 分钟专注计时
@@ -31,7 +31,7 @@
     npm run check
     npm test
 
-Linux 图形环境中的真实窗口验收（CI 自动执行）：
+开发环境中的真实窗口验收（CI 在 Linux 图形环境自动执行）：
 
     xvfb-run -a npm run smoke
 
@@ -41,13 +41,13 @@ Linux 图形环境中的真实窗口验收（CI 自动执行）：
 
     npm run dist
 
-也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows、macOS 和 Linux 的测试构建。
+也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。
 
 产品定位、技术设计与后续任务见[产品与技术规划](docs/product-technical-plan.md)。新增页面和角色时请遵循[代码结构与命名约定](docs/code-structure.md)。
 
 ## 发布状态
 
-目前提供 CI 生成的测试安装包。正式发布前仍需完成 Windows 和 macOS 实机验收，以及签名与公证；未签名安装包可能触发系统提示。
+[v0.2.0-preview.1 预览版](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.2.0-preview.1) 提供 Windows 和 macOS 未签名安装包。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
 
 本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
 
