@@ -1,0 +1,213 @@
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.bubble {
+  position: absolute;
+  z-index: 5;
+  top: 11px;
+  left: 50%;
+  max-width: 92%;
+  padding: 9px 13px;
+  border: 2px solid #49375d;
+  border-radius: 16px;
+  background: #fffdf7;
+  color: #49375d;
+  font-size: 13px;
+  white-space: nowrap;
+  box-shadow: 0 5px 0 #49375d22;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity .18s, transform .18s;
+  pointer-events: none;
+}
+
+.bubble.visible { opacity: 1; transform: translate(-50%, 0); }
+
+.pet {
+  position: absolute;
+  left: 50%;
+  bottom: 25px;
+  width: 162px;
+  height: 192px;
+  transform: translateX(-50%);
+  cursor: grab;
+  outline: none;
+  touch-action: none;
+  filter: drop-shadow(0 10px 5px #34264a30);
+}
+
+.pet:active { cursor: grabbing; }
+.pet:focus-visible { outline: 3px solid #8670d0; outline-offset: 5px; border-radius: 28px; }
+
+.tail {
+  position: absolute;
+  right: 5px;
+  bottom: 30px;
+  width: 42px;
+  height: 100px;
+  border: 13px solid #49375d;
+  border-left: 0;
+  border-bottom: 0;
+  border-radius: 0 56px 0 0;
+  transform-origin: bottom left;
+  animation: wag 3.4s ease-in-out infinite;
+}
+
+.body {
+  position: absolute;
+  left: 27px;
+  bottom: 14px;
+  width: 111px;
+  height: 105px;
+  border: 5px solid #49375d;
+  border-radius: 52% 52% 42% 42%;
+  background: #f7c778;
+}
+
+.body::after {
+  content: "";
+  position: absolute;
+  left: 25px;
+  top: 26px;
+  width: 51px;
+  height: 61px;
+  border-radius: 50%;
+  background: #fff0cf;
+}
+
+.head {
+  position: absolute;
+  z-index: 2;
+  top: 20px;
+  left: 15px;
+  width: 135px;
+  height: 116px;
+  border: 5px solid #49375d;
+  border-radius: 46% 46% 48% 48%;
+  background: #f7c778;
+}
+
+.ear {
+  position: absolute;
+  z-index: -1;
+  top: -26px;
+  width: 45px;
+  height: 64px;
+  border: 5px solid #49375d;
+  border-radius: 8px 80% 0 0;
+  background: #f7c778;
+}
+
+.ear::after {
+  content: "";
+  position: absolute;
+  inset: 11px 8px 9px;
+  border-radius: inherit;
+  background: #ee9da0;
+}
+
+.ear-left { left: 3px; transform: rotate(-18deg); }
+.ear-right { right: 3px; transform: scaleX(-1) rotate(-18deg); }
+
+.face { position: relative; width: 100%; height: 100%; }
+.eye {
+  position: absolute;
+  top: 52px;
+  width: 13px;
+  height: 18px;
+  border-radius: 50%;
+  background: #49375d;
+  animation: blink 6s infinite;
+}
+.eye-left { left: 31px; }
+.eye-right { right: 31px; }
+
+.nose {
+  position: absolute;
+  top: 73px;
+  left: 50%;
+  width: 12px;
+  height: 9px;
+  border-radius: 50%;
+  background: #d67886;
+  transform: translateX(-50%);
+}
+
+.mouth {
+  position: absolute;
+  top: 81px;
+  left: 50%;
+  width: 21px;
+  height: 12px;
+  border: 3px solid #49375d;
+  border-top: 0;
+  border-radius: 0 0 50% 50%;
+  transform: translateX(-50%);
+}
+
+.cheek {
+  position: absolute;
+  top: 75px;
+  width: 21px;
+  height: 10px;
+  border-radius: 50%;
+  background: #efa8a4;
+  opacity: .7;
+}
+.cheek-left { left: 12px; }
+.cheek-right { right: 12px; }
+
+.paw {
+  position: absolute;
+  z-index: 3;
+  bottom: 9px;
+  width: 45px;
+  height: 26px;
+  border: 5px solid #49375d;
+  border-radius: 48%;
+  background: #f7c778;
+}
+.paw-left { left: 24px; }
+.paw-right { right: 20px; }
+
+.hint {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  color: #49375d;
+  font-size: 11px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px white;
+  transform: translateX(-50%);
+  transition: opacity .5s;
+  pointer-events: none;
+}
+.hint.hidden { opacity: 0; }
+
+.pet.walking { animation: walk .28s ease-in-out infinite alternate; }
+.pet.happy .head { animation: hop .38s ease-out 2 alternate; }
+.pet.focused { filter: drop-shadow(0 10px 5px #34264a30) saturate(.7); }
+
+@keyframes wag { 50% { transform: rotate(16deg); } }
+@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes walk { to { transform: translateX(-50%) translateY(-5px) rotate(2deg); } }
+@keyframes hop { to { transform: translateY(-8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tail, .eye, .pet.walking, .pet.happy .head { animation: none; }
+}

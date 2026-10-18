@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'">
+  <title>淘气桌宠</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="stage">
+    <div id="bubble" class="bubble" aria-live="polite"></div>
+    <div id="pet" class="pet" role="button" tabindex="0" aria-label="淘气桌宠，点击互动，拖动移动，右键打开菜单">
+      <div class="tail"></div>
+      <div class="body"></div>
+      <div class="head">
+        <div class="ear ear-left"></div>
+        <div class="ear ear-right"></div>
+        <div class="face">
+          <span class="eye eye-left"></span>
+          <span class="eye eye-right"></span>
+          <span class="nose"></span>
+          <span class="mouth"></span>
+          <span class="cheek cheek-left"></span>
+          <span class="cheek cheek-right"></span>
+        </div>
+      </div>
+      <div class="paw paw-left"></div>
+      <div class="paw paw-right"></div>
+    </div>
+    <div class="hint">拖动我 · 右键打开菜单</div>
+  </main>
+  <script src="./renderer.js"></script>
+</body>
+</html>
