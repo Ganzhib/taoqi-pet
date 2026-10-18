@@ -27,6 +27,7 @@ let dragOrigin = null;
 let walkTimeout = null;
 let walkInterval = null;
 let focusTimer = null;
+let isQuitting = false;
 
 function settingsPath() {
   return path.join(app.getPath("userData"), "settings.json");
@@ -498,7 +499,14 @@ function createPetWindow() {
   petWindow.loadFile(path.join(__dirname, "index.html"));
   petWindow.webContents.on("did-finish-load", sendState);
   petWindow.once("ready-to-show", showPet);
-  petWindow.on("close", persistPosition);
+  petWindow.on("close", (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      hidePet();
+      return;
+    }
+    persistPosition();
+  });
   petWindow.on("closed", () => {
     clearTimeout(walkTimeout);
     stopWalk();
@@ -549,6 +557,7 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.on("window-all-closed", () => app.quit());
   app.on("before-quit", () => {
+    isQuitting = true;
     clearTimeout(walkTimeout);
     clearTimeout(focusTimer);
     stopWalk();
