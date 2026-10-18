@@ -18,6 +18,7 @@
 - 打包后可在 macOS 和 Windows 菜单中选择开机启动
 - 本地保存偏好与专注结束时间，不收集屏幕、文件或浏览记录
 - 固定的工具铺入口，只有用户点击后才在独立的 Electron 窗口打开
+- 安装版启动后定期检查版本；Windows 安装版后台下载并在退出或确认重启时原地更新，macOS 和 Windows 便携版发现新版后提示下载
 
 ## 运行
 
@@ -47,9 +48,9 @@
 
 ## 发布状态
 
-[v0.3.0-preview.1 预览版](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0-preview.1) 提供 Windows 和 macOS 未签名安装包。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
+[v0.3.0-preview.2 预览版](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0-preview.2) 提供 Windows 和 macOS 未签名安装包，并首次加入版本提醒。Windows 安装版可在后续版本发布时原地更新；已安装的 preview.1 需要手动安装 preview.2 一次。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
 
-本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
+更新机制的适用范围和发布流程见[自动更新设计](docs/auto-update/requirements.md)。本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
 
 ## 许可
 

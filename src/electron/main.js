@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Tray, dialog, ipcMain, nativeImage, screen, shell } = require("electron");
+const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeImage, screen, shell } = require("electron");
 const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const path = require("node:path");
@@ -6,6 +6,7 @@ const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, HOME_THEMES, HOME_FUR
 
 const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSettings } = require("./settings-store");
 const { renderPetSvg } = require("./character-generator");
+const { createUpdateManager } = require("./update-manager");
 
 const BASE_SIZE = { width: 240, height: 280 };
 const ICON_PATH = path.join(__dirname, "../../assets/icon.png");
@@ -15,6 +16,7 @@ let tray;
 let marketWindow = null;
 let homeWindow = null;
 let toolboxWindow = null;
+let updateManager = null;
 let settings;
 let dragOrigin = null;
 let walkTimeout = null;
@@ -482,6 +484,8 @@ function menuTemplate() {
   }
   items.push(
     { type: "separator" },
+    ...updateManager.menuItems(),
+    { type: "separator" },
     { label: "我的工具", submenu: [
       { label: "打开淘气工具铺（简历、画图等）", click: openToolbox },
     ] },
@@ -597,6 +601,14 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     app.setName("淘气桌宠");
     settings = readSettings();
+    if (process.platform === "win32") app.setAppUserModelId("icu.ganzhibin.taoqipet");
+    updateManager = createUpdateManager({
+      app, Notification, dialog, shell,
+      isQuiet: () => settings.quietMode,
+      sendNotice,
+      refreshMenu: updateTrayMenu,
+      beforeInstall: () => { isQuitting = true; },
+    });
     ipcMain.handle("pet:get-state", () => ({ ...settings, focusActive: isFocusActive() }));
     ipcMain.handle("pet:get-artwork", (_event, id) => getArtwork(id));
     ipcMain.handle("market:get-catalog", getCatalog);
@@ -645,11 +657,13 @@ if (!app.requestSingleInstanceLock()) {
     screen.on("display-metrics-changed", keepPetVisible);
     createPetWindow();
     createTray();
+    updateManager.start();
     scheduleFocusEnd();
   });
   app.on("window-all-closed", () => app.quit());
   app.on("before-quit", () => {
     isQuitting = true;
+    updateManager.stop();
     clearTimeout(walkTimeout);
     clearTimeout(focusTimer);
     stopWalk();

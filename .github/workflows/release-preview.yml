@@ -1,17 +1,37 @@
 name: Publish unsigned preview
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/release-preview.yml"
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: taoqi-pet-preview-release
+  cancel-in-progress: false
+
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v0.3.0-preview.2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare draft release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
+          else
+            gh release create "$TAG" --draft --target "$GITHUB_SHA" \
+              --title "淘气桌宠 v0.3.0 预览版 2" \
+              --notes-file docs/releases/v0.3.0-preview.2.md
+          fi
+
   package:
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -22,6 +42,7 @@ jobs:
             platform: win
     runs-on: ${{ matrix.os }}
     env:
+      GH_TOKEN: ${{ github.token }}
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:
@@ -32,48 +53,29 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run check
       - run: npm test
-      - run: npm run dist -- --${{ matrix.platform }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: taoqi-preview-${{ matrix.platform }}
-          path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.exe
-          if-no-files-found: error
+      - run: npm run build:ui
+      - name: Build and upload preview assets
+        run: npx electron-builder --${{ matrix.platform }} --publish always
 
   publish:
     needs: package
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: v0.3.0-preview.1
+      TAG: v0.3.0-preview.2
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: taoqi-preview-*
-          path: release-assets
-      - name: Publish preview release
+      - name: Verify update manifests and publish release
         shell: bash
         run: |
-          mapfile -d '' assets < <(find release-assets -type f -print0)
-          if (( ${#assets[@]} < 4 )); then
-            echo "Expected Windows and macOS packages."
-            exit 1
-          fi
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "${assets[@]}" --clobber
-          else
-            gh release create "$TAG" "${assets[@]}" \
-              --target "$GITHUB_SHA" \
-              --title "淘气桌宠 v0.3.0 预览版" \
-              --notes-file docs/releases/v0.3.0-preview.1.md \
-              --prerelease
-          fi
-      - name: Mark older preview as superseded
-        if: success()
-        run: |
-          gh release edit v0.2.0-preview.2 \
-            --title "已替换 · 淘气桌宠 v0.2.0 预览版 2" \
-            --notes "新版本已替换此预览版。请使用 [v0.3.0-preview.1](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0-preview.1)。"
+          set -euo pipefail
+          gh release view "$TAG" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'preview.yml' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'preview-mac.yml' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-setup-0.3.0-preview.2-win-x64.exe' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-portable-0.3.0-preview.2-win-x64.exe' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-0.3.0-preview.2-mac-arm64.dmg' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-0.3.0-preview.2-mac-x64.dmg' "$RUNNER_TEMP/assets.txt"
+          gh release edit "$TAG" --draft=false --prerelease \
+            --title "淘气桌宠 v0.3.0 预览版 2" \
+            --notes-file docs/releases/v0.3.0-preview.2.md
