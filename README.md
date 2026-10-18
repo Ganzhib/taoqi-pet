@@ -30,11 +30,19 @@
     npm run check
     npm test
 
+生成当前系统的安装包：
+
+    npm run dist
+
+也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows、macOS 和 Linux 的测试构建。
+
 产品定位、技术设计与后续任务见[产品与技术规划](docs/product-technical-plan.md)。
 
 ## 发布状态
 
-目前是早期开发版，尚未发布安装包。跨平台打包、原生体验和公开分发需要继续验收。
+目前提供 CI 生成的测试安装包。正式发布前仍需完成 Windows 和 macOS 实机验收，以及签名与公证；未签名安装包可能触发系统提示。
+
+本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
 
 ## 许可
 
