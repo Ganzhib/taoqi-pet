@@ -1,10 +1,10 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain, screen, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
-const { TOOLBOX_URL, clampToWorkArea } = require("./pet-core");
+const { TOOLBOX_URL, CHARACTERS, clampToWorkArea } = require("./pet-core");
 
 const BASE_SIZE = { width: 240, height: 280 };
-const DEFAULT_SETTINGS = { roaming: true, alwaysOnTop: true, scale: 1 };
+const DEFAULT_SETTINGS = { roaming: true, alwaysOnTop: true, scale: 1, characterId: "caramel" };
 const FOCUS_DURATION_MS = 25 * 60 * 1000;
 
 let petWindow;
@@ -26,6 +26,8 @@ function readSettings() {
       roaming: saved.roaming !== false,
       alwaysOnTop: saved.alwaysOnTop !== false,
       scale: [1, 1.25, 1.5].includes(saved.scale) ? saved.scale : 1,
+      characterId: CHARACTERS.some((character) => character.id === saved.characterId)
+        ? saved.characterId : DEFAULT_SETTINGS.characterId,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -135,6 +137,12 @@ async function openToolbox() {
 
 function showPetMenu() {
   const menu = Menu.buildFromTemplate([
+    { label: "角色", submenu: CHARACTERS.map((character) => ({
+      label: character.name,
+      type: "radio",
+      checked: settings.characterId === character.id,
+      click: () => updateSettings({ characterId: character.id }),
+    })) },
     { label: "暂停自主活动", type: "checkbox", checked: !settings.roaming,
       click: (item) => updateSettings({ roaming: !item.checked }) },
     { label: focusActive ? "结束专注" : "开始 25 分钟专注", click: toggleFocus },
