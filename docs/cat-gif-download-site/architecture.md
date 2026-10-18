@@ -16,4 +16,4 @@
 
 `site/` 只有 HTML/CSS/JS；页面不请求自有服务。构建步骤把文件和 `assets/pets/*.gif`、图标复制到静态发布目录。下载按钮固定指向当前预览版 GitHub Release 资产。页面支持键盘操作、响应式布局及减少动态效果偏好。
 
-GitHub Actions 在 Windows/macOS 构建未签名安装包并发布 Release。部署沿用 `Ganzhib/resume` 仓库的 `production` 环境 SSH 凭据：专用工作流检出本仓库的官网源码，将静态文件同步到服务器独立目录，以单独 Nginx 虚拟主机提供服务。官网 DNS 当前指向的主机与 resume 服务器不同，只有域名解析和证书就绪后才能确认线上 HTTPS 验收。SSH 私钥只留在 GitHub Secret，绝不写入仓库或页面。
+GitHub Actions 在 Windows/macOS 构建未签名安装包并发布 Release。部署工作流位于 `Ganzhib/catbuddy` 仓库，使用已有的 `production` 环境 root SSH 凭据 `DEPLOY_SSH_KEY`。它检出本仓库的 `main`，复制静态页面、八个 GIF 与图标到独立目录 `/var/www/taoqi-pet`，为 `pet.ganzhibin.icu` 写单独的 Nginx 虚拟主机并通过 Let's Encrypt 申请证书。`Ganzhib/resume` 的部署密钥只能以非 root 账号登录，没有修改 Nginx 的权限，因此没有继续用于官网部署。SSH 私钥只留在 GitHub Secret，绝不写入仓库或页面。
