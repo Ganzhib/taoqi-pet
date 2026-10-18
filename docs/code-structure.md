@@ -4,8 +4,9 @@
 
 ```text
 assets/
-  pets/                 内置原创角色 SVG
-build/                  应用图标源文件
+  pets/                 内置猫咪状态 GIF
+assets/source/          猫咪原始参考图
+build/                  Windows/macOS 应用图标
 src/
   electron/
     main.js             Electron 生命周期、菜单、窗口与 IPC 注册
@@ -37,6 +38,9 @@ src/
     shared/
       contracts.ts      三个 preload 桥接的 TypeScript 契约
       useArtwork.ts     跨页面共用的图片加载 Hook
+site/                   静态下载官网，发布时复制 GIF 与图标
+scripts/
+  render-cat-gifs.py    从原始参考图生成 GIF 与图标
 tests/
   pet-core.test.js      纯函数与关键不变量
   electron-smoke.js     真实窗口用户流程
@@ -62,7 +66,7 @@ tests/
 
 ## 增加功能
 
-1. 新增角色：把有公开分发权的原创 SVG 放到 `assets/pets/`，在 `src/electron/pet-core.js` 增加元数据，并在 `src/ui/pet/reactions.ts` 配置台词。
+1. 新增角色：把有公开分发权的循环 GIF 放到 `assets/pets/`，在 `src/electron/pet-core.js` 增加元数据，并在 `src/ui/pet/reactions.ts` 配置台词。
 2. 新增页面：在 `src/ui/<page>/` 建 React 入口、组件与局部样式；创建同名 HTML；仅在确实需要主进程能力时新增 preload 方法和 IPC。
 3. 修改本地设置：在主进程补默认值与读取迁移，再为对应页面更新 `src/ui/shared/contracts.ts`。不要把设置副本放进多个存储位置。
 4. 增加交互：先保证键盘可操作与 `prefers-reduced-motion`，再用 `tests/electron-smoke.js` 覆盖一条真实用户路径。

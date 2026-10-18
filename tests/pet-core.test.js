@@ -25,8 +25,14 @@ test("toolbox address carries only fixed source parameters", () => {
 
 test("every built-in character has local artwork", () => {
   for (const character of CHARACTERS) {
-    const artwork = path.join(__dirname, "..", "assets", "pets", character.id + ".svg");
-    assert.ok(fs.statSync(artwork).size > 0, character.name);
+    const artwork = path.join(__dirname, "..", "assets", "pets", character.id + ".gif");
+    const bytes = fs.readFileSync(artwork);
+    assert.equal(bytes.toString("ascii", 0, 6), "GIF89a", character.name);
+    let frames = 0;
+    for (let index = 0; index < bytes.length - 1; index++) {
+      if (bytes[index] === 0x21 && bytes[index + 1] === 0xf9) frames++;
+    }
+    assert.ok(frames >= 2, character.name + " 必须是真正的动图");
   }
 });
 

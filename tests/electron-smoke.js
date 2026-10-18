@@ -25,6 +25,8 @@ async function run() {
     });
 
     assert.equal(await pet.title(), "淘气桌宠");
+    assert.equal(await application.evaluate(({ BrowserWindow }) =>
+      BrowserWindow.getAllWindows()[0].isAlwaysOnTop()), true);
     await pet.locator("#pet").click();
     await pet.locator("#bubble.visible").waitFor();
     assert.ok(await pet.locator("#bubble").textContent());
@@ -37,12 +39,13 @@ async function run() {
     assert.equal(await market.title(), "淘气宠物市场");
     assert.equal(await market.locator(".pet-card").count(), 8);
 
-    await market.locator('[data-category="动漫感"]').click();
-    assert.equal(await market.locator(".pet-card").count(), 3);
-    await market.locator(".pet-card").filter({ hasText: "云朵龙" })
+    await market.locator('[data-category="学习中"]').click();
+    assert.equal(await market.locator(".pet-card").count(), 1);
+    await market.locator(".pet-card").filter({ hasText: "冲刺猫" })
       .getByRole("button", { name: "选它陪伴" }).click();
-    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cloud-dragon");
+    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-study");
     await pet.waitForFunction(() => document.getElementById("pet-art").naturalWidth > 0);
+    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("data:image/gif"));
     await market.screenshot({ path: "artifacts/market.png" });
     await pet.screenshot({ path: "artifacts/pet.png" });
 
@@ -86,7 +89,7 @@ async function run() {
     });
     await market.getByRole("button", { name: "删除测试伙伴" }).click();
     await market.locator(".empty").waitFor();
-    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "caramel");
+    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-idle");
 
     await market.close();
     const homeOpened = application.waitForEvent("window");

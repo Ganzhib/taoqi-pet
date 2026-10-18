@@ -14,6 +14,7 @@ let petWindow;
 let tray;
 let marketWindow = null;
 let homeWindow = null;
+let toolboxWindow = null;
 let settings;
 let dragOrigin = null;
 let walkTimeout = null;
@@ -99,10 +100,20 @@ function keepPetVisible() {
   }
 }
 
+function applyPetWindowLevel() {
+  petWindow.setAlwaysOnTop(settings.alwaysOnTop, settings.alwaysOnTop ? "screen-saver" : "normal");
+  if (process.platform === "darwin") {
+    // Fullscreen apps live in separate Spaces; normal always-on-top alone cannot cross them.
+    petWindow.setVisibleOnAllWorkspaces(settings.alwaysOnTop, {
+      visibleOnFullScreen: settings.alwaysOnTop,
+    });
+  }
+}
+
 function updateSettings(patch) {
   settings = { ...settings, ...patch };
   saveSettings(settings);
-  if ("alwaysOnTop" in patch) petWindow.setAlwaysOnTop(settings.alwaysOnTop);
+  if ("alwaysOnTop" in patch) applyPetWindowLevel();
   if ("scale" in patch) {
     petWindow.setBounds({ ...petWindow.getBounds(), ...windowSize() });
     keepPetVisible();
@@ -179,9 +190,9 @@ function getArtwork(id) {
   const custom = settings.customPets.find((pet) => pet.id === id);
   if (!builtIn && !custom) return null;
   const file = builtIn
-    ? path.join(__dirname, "../../assets/pets", builtIn.id + ".svg")
+    ? path.join(__dirname, "../../assets/pets", builtIn.id + ".gif")
     : customPetPath(custom);
-  const mime = builtIn || custom.kind === "generated" ? "image/svg+xml"
+  const mime = builtIn ? "image/gif" : custom.kind === "generated" ? "image/svg+xml"
     : IMAGE_TYPES.find((type) => type.extension === custom.extension).mime;
   try {
     return "data:" + mime + ";base64," + fs.readFileSync(file).toString("base64");
@@ -339,23 +350,63 @@ function showHelp() {
     type: "info",
     title: "淘气桌宠使用帮助",
     message: "陪伴，随时由你决定",
-    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场，按 H 可进入小窝。安静模式会暂停游走和自动提示。工具铺只会在你点击后打开。",
+    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场，按 H 可进入小窝。安静模式会暂停游走和自动提示。工具铺只会在你点击后于应用内打开。",
     buttons: ["知道了"],
   });
 }
 
-async function openToolbox() {
-  try {
-    await shell.openExternal(TOOLBOX_URL);
-  } catch {
-    dialog.showErrorBox("无法打开工具铺", "请稍后再试，或在浏览器中访问 next.ganzhibin.icu。");
+function isToolboxPage(url) {
+  const parsed = new URL(url);
+  return parsed.protocol === "https:" && parsed.hostname === "next.ganzhibin.icu";
+}
+
+function openExternalLink(url) {
+  const parsed = new URL(url);
+  if (parsed.protocol === "https:" || parsed.protocol === "http:" || parsed.protocol === "mailto:") {
+    shell.openExternal(url);
   }
+}
+
+function openToolbox() {
+  if (toolboxWindow && !toolboxWindow.isDestroyed()) {
+    toolboxWindow.show();
+    toolboxWindow.focus();
+    return;
+  }
+  toolboxWindow = new BrowserWindow({
+    width: 1120,
+    height: 760,
+    minWidth: 780,
+    minHeight: 560,
+    title: "淘气工具铺",
+    icon: ICON_PATH,
+    autoHideMenuBar: true,
+    webPreferences: {
+      partition: "persist:taoqi-toolbox",
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  toolboxWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (isToolboxPage(url)) toolboxWindow.loadURL(url);
+    else openExternalLink(url);
+    return { action: "deny" };
+  });
+  toolboxWindow.webContents.on("will-navigate", (event, url) => {
+    if (isToolboxPage(url)) return;
+    event.preventDefault();
+    openExternalLink(url);
+  });
+  toolboxWindow.loadURL(TOOLBOX_URL);
+  toolboxWindow.on("closed", () => { toolboxWindow = null; });
 }
 
 function showPet() {
   if (!petWindow || petWindow.isDestroyed()) return;
   keepPetVisible();
   petWindow.showInactive();
+  if (settings.alwaysOnTop) petWindow.moveTop();
   scheduleWalk();
   updateTrayMenu();
 }
@@ -510,6 +561,7 @@ function createPetWindow() {
       sandbox: true,
     },
   });
+  applyPetWindowLevel();
   petWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   petWindow.loadFile(path.join(__dirname, "../../dist-ui/index.html"));
   petWindow.webContents.on("did-finish-load", sendState);

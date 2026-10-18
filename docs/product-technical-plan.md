@@ -11,7 +11,7 @@
 1. 启动后直接出现宠物，不弹登录或配置窗口。
 2. 点击宠物获得即时反馈，拖动它到喜欢的位置；低频自主游走可暂停。
 3. 右键或托盘菜单提供宠物市场、装扮、安静模式、置顶、大小、专注、工具入口和退出。
-4. 只有用户点击“打开淘气工具铺”后，系统浏览器才访问 https://next.ganzhibin.icu/ 。
+4. 只有用户点击“打开淘气工具铺”后，Electron 内置的独立工具窗口才访问 https://next.ganzhibin.icu/ 。
 5. 返回桌面后，宠物继续之前的状态。
 
 ## 3. 当前代码结构
@@ -26,10 +26,10 @@
 | src/ui/market/ | React 免费宠物市场 |
 | src/ui/home/ | React 小窝、布置和抓鱼游戏 |
 | src/ui/shared/ | 桥接 TypeScript 契约与共用 Hook |
-| assets/pets/*.svg、build/icon.svg | 项目内置角色与应用图标 |
+| assets/pets/*.gif、build/icon.icns、build/icon.ico | 项目内置角色与应用图标 |
 | tests/ | 核心逻辑测试与真实 Electron 窗口验收 |
 
-Vite 从 `src/ui/` 的三个 HTML 入口构建到 `dist-ui/`，Electron 加载构建后的本地页面。主进程负责窗口坐标、用户图片副本和外部浏览器；React 负责动画、市场、小窝和临时交互状态。页面通过 contextIsolation 和独立 preload 调用有限 IPC，不直接调用 Node API。目录和文件命名规则见 [代码结构与命名约定](code-structure.md)。
+Vite 从 `src/ui/` 的三个 HTML 入口构建到 `dist-ui/`，Electron 加载构建后的本地页面。主进程负责窗口坐标、用户图片副本和工具铺独立窗口；React 负责动画、市场、小窝和临时交互状态。页面通过 contextIsolation 和独立 preload 调用有限 IPC，不直接调用 Node API。目录和文件命名规则见 [代码结构与命名约定](code-structure.md)。
 
 ## 4. 里程碑
 
@@ -44,7 +44,7 @@ Vite 从 `src/ui/` 的三个 HTML 入口构建到 `dist-ui/`，Electron 加载�
 
 ### M1：角色与体验（核心完成）
 
-- 已加入八位项目内原创 SVG 角色、免费宠物市场、装扮和主动互动。
+- 已加入同一只橘白猫的八种循环 GIF 状态、免费宠物市场、装扮和主动互动。
 - 已加入用户本地图片导入、选用、改名与删除；不上传用户素材。
 - 已加入角色切换、安静模式、专注倒计时、托盘与位置恢复。
 - 待完善中、英、日文案与辅助功能。
@@ -79,4 +79,8 @@ Vite 从 `src/ui/` 的三个 HTML 入口构建到 `dist-ui/`，Electron 加载�
 
 ## 8. 预览版范围
 
-v0.2.0-preview.2 只发布 Windows 和 macOS 未签名构建。Linux 仍用于 CI 图形环境验收，不作为产品发布目标。英文、日文界面与实机安装验收继续列为后续发布门槛；当前界面以中文为主。未完成正式代码签名和 macOS 公证时，下载页必须明确提示系统安全警告。
+v0.3.0-preview.1 只发布 Windows 和 macOS 未签名构建。Linux 仍用于 CI 图形环境验收，不作为产品发布目标。英文、日文界面与实机安装验收继续列为后续发布门槛；当前界面以中文为主。未完成正式代码签名和 macOS 公证时，下载页必须明确提示系统安全警告。
+
+## 9. 悬浮窗口与品牌动图
+
+开启“总在最前”时，窗口使用 Electron 的高层级置顶。macOS 同时将宠物显示到所有空间及全屏应用上方；关闭该选项时恢复普通窗口层级和空间行为。部分系统级安全界面与独占全屏游戏不受普通应用窗口控制，需要在实机验收中单独记录。品牌动图和下载官网的详细需求见 [品牌动图与官网规划](cat-gif-download-site/requirements.md)。

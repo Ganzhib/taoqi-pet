@@ -4,7 +4,7 @@ import { useArtwork } from "../shared/useArtwork";
 import { CreatorPanel } from "./CreatorPanel";
 import "./market.css";
 
-const categories = ["全部", "日常陪伴", "动漫感", "搞笑梗", "我的创作"];
+const categories = ["全部", "学习中", "打工中", "沙雕日常", "我的创作"];
 
 interface CardProps {
   pet: CatalogPet;
@@ -166,8 +166,8 @@ export function MarketApp() {
       <header className="hero">
         <div className="hero-copy">
           <span className="eyebrow">TAOQI PET MARKET</span>
-          <h1>换个小伙伴，换种好心情</h1>
-          <p>原创角色、免费装扮，也欢迎带自己的图片来。</p>
+          <h1>八种打工猫，今天是哪一只？</h1>
+          <p>同一只猫的八种真实 GIF 状态，也欢迎带自己的图片来。</p>
           <span className="free-badge">全部免费 · 无账号 · 无付费解锁</span>
         </div>
         <div className="hero-actions">

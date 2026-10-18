@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: v0.2.0-preview.2
+      TAG: v0.3.0-preview.1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -67,13 +67,13 @@ jobs:
           else
             gh release create "$TAG" "${assets[@]}" \
               --target "$GITHUB_SHA" \
-              --title "淘气桌宠 v0.2.0 预览版" \
-              --notes-file docs/releases/v0.2.0-preview.2.md \
+              --title "淘气桌宠 v0.3.0 预览版" \
+              --notes-file docs/releases/v0.3.0-preview.1.md \
               --prerelease
           fi
       - name: Mark older preview as superseded
         if: success()
         run: |
-          gh release edit v0.2.0-preview.1 \
-            --title "已替换 · 淘气桌宠 v0.2.0 预览版 1" \
-            --notes "预览版 1 的下载文件名不完整。请使用 [v0.2.0-preview.2](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.2.0-preview.2)。"
+          gh release edit v0.2.0-preview.2 \
+            --title "已替换 · 淘气桌宠 v0.2.0 预览版 2" \
+            --notes "新版本已替换此预览版。请使用 [v0.3.0-preview.1](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0-preview.1)。"

@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS = {
   quietMode: false,
   alwaysOnTop: true,
   scale: 1,
-  characterId: "caramel",
+  characterId: "cat-idle",
   decorationId: "none",
   customPets: [],
   homeThemeId: "sunny",

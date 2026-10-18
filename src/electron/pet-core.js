@@ -1,14 +1,14 @@
 const TOOLBOX_URL = "https://next.ganzhibin.icu/?utm_source=taoqi_pet&utm_medium=app&utm_content=toolbox";
 
 const CHARACTERS = [
-  { id: "caramel", name: "焦糖猫", category: "日常陪伴", description: "活力满满的老朋友。" },
-  { id: "night", name: "星夜猫", category: "日常陪伴", description: "安静陪你熬过灵感时刻。" },
-  { id: "mint", name: "薄荷猫", category: "日常陪伴", description: "清清爽爽，随时出发。" },
-  { id: "cloud-dragon", name: "云朵龙", category: "动漫感", description: "爱打喷嚏的小龙，喷出的是云朵。" },
-  { id: "radio-fox", name: "电波狐", category: "动漫感", description: "耳机里永远有下一首歌。" },
-  { id: "cloud-ghost", name: "迷糊幽灵", category: "动漫感", description: "飘来飘去，也会认真陪伴。" },
-  { id: "office-blob", name: "打工团子", category: "搞笑梗", description: "端着咖啡，努力假装很精神。" },
-  { id: "fish-shark", name: "摸鱼鲨", category: "搞笑梗", description: "看起来很凶，其实只想休息。" },
+  { id: "cat-idle", name: "发呆猫", category: "沙雕日常", description: "什么都没做，但已经很努力了。" },
+  { id: "cat-study", name: "冲刺猫", category: "学习中", description: "笔记翻开，知识正在缓慢加载。" },
+  { id: "cat-work", name: "赶工猫", category: "打工中", description: "DDL 追我，我追咖啡。" },
+  { id: "cat-coffee", name: "咖啡续命猫", category: "打工中", description: "这一杯下去，灵魂短暂上线。" },
+  { id: "cat-debug", name: "修 Bug 猫", category: "打工中", description: "它刚刚又把自己写的代码看哭了。" },
+  { id: "cat-slack", name: "摸鱼猫", category: "沙雕日常", description: "不是在偷懒，是在给大脑散热。" },
+  { id: "cat-nap", name: "装睡猫", category: "沙雕日常", description: "眼睛很清醒，嘴巴已经开始打呼。" },
+  { id: "cat-cheer", name: "下班猫", category: "沙雕日常", description: "今天也是靠可爱顺利收工。" },
 ];
 
 const DECORATIONS = [
