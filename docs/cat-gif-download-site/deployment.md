@@ -2,6 +2,10 @@
 
 官网源码在 `site/`，八个动图在 `assets/pets/`。发布流程完整保存在本仓库的 [Deploy download website](https://github.com/Ganzhib/taoqi-pet/blob/main/.github/workflows/deploy-site.yml) 工作流中，目标是现有服务器 `150.158.27.165` 和域名 `pet.ganzhibin.icu`。
 
+## 已发布的预览站
+
+当前官网可在 [GitHub Pages](https://ganzhib.github.io/taoqi-pet/) 访问，由本仓库的 [Publish download site to GitHub Pages](https://github.com/Ganzhib/taoqi-pet/blob/main/.github/workflows/deploy-pages.yml) 自动发布，不需要服务器 SSH 密钥。它提供同一套页面、八个 GIF 和下载链接。`pet.ganzhibin.icu` 仍使用下方的现有服务器部署流程，完成密钥配置后再启用。
+
 ## 一次性配置
 
 使用**仅供淘气桌宠官网部署**的 SSH 密钥。请在你的设备上生成密钥对，把公钥添加到服务器 root 账号的 `~/.ssh/authorized_keys`，把私钥全文保存为本仓库 GitHub Environment `production` 的 Secret `SITE_SSH_PRIVATE_KEY`。将服务器已验证的 SSH 主机公钥行保存为同一环境的 Secret `SITE_SSH_KNOWN_HOSTS`。不要把私钥发到聊天或提交进仓库。

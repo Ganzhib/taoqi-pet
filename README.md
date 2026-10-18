@@ -41,7 +41,7 @@
 
     npm run dist
 
-也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。下载官网为 [pet.ganzhibin.icu](https://pet.ganzhibin.icu/)。
+也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。当前可访问的下载官网为 [GitHub Pages 预览站](https://ganzhib.github.io/taoqi-pet/)；独立域名 `pet.ganzhibin.icu` 待服务器部署完成后启用。
 
 产品定位、技术设计与后续任务见[产品与技术规划](docs/product-technical-plan.md)。新增页面和角色时请遵循[代码结构与命名约定](docs/code-structure.md)。
 
