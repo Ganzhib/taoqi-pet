@@ -1,6 +1,6 @@
 {
   "name": "taoqi-pet",
-  "version": "0.3.0-preview.2",
+  "version": "0.3.0-preview.3",
   "description": "A free desktop pet and companion.",
   "private": true,
   "license": "MIT",
@@ -8,7 +8,7 @@
   "scripts": {
     "start": "npm run build:ui && electron .",
     "build:ui": "tsc --noEmit && vite build",
-    "check": "node --check src/electron/main.js && node --check src/electron/update-manager.js && node --check src/electron/version-check.js && node --check src/electron/pet-core.js && node --check src/electron/character-generator.js && node --check src/electron/settings-store.js && node --check src/electron/preloads/pet.js && node --check src/electron/preloads/market.js && node --check src/electron/preloads/home.js && node --check tests/electron-smoke.js && tsc --noEmit",
+    "check": "node scripts/check-app-icons.js && node --check src/electron/main.js && node --check src/electron/update-manager.js && node --check src/electron/version-check.js && node --check src/electron/pet-core.js && node --check src/electron/character-generator.js && node --check src/electron/settings-store.js && node --check src/electron/preloads/pet.js && node --check src/electron/preloads/market.js && node --check src/electron/preloads/home.js && node --check tests/electron-smoke.js && tsc --noEmit",
     "test": "node --test tests/*.test.js",
     "smoke": "npm run build:ui && node tests/electron-smoke.js",
     "pack": "npm run build:ui && electron-builder --dir --publish never",
@@ -84,7 +84,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "taoqi-pet-setup-${version}-win-${arch}.${ext}"
+      "artifactName": "taoqi-pet-setup-${version}-win-${arch}.${ext}",
+      "installerIcon": "build/icon.ico"
     },
     "portable": {
       "artifactName": "taoqi-pet-portable-${version}-win-${arch}.${ext}"
@@ -95,6 +96,9 @@
       "repo": "taoqi-pet",
       "channel": "preview",
       "releaseType": "draft"
+    },
+    "dmg": {
+      "icon": "build/icon.icns"
     }
   },
   "dependencies": {

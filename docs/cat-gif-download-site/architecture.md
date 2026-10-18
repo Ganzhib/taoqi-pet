@@ -17,3 +17,7 @@
 `site/` 只有 HTML/CSS/JS；页面不请求自有服务。构建步骤把文件和 `assets/pets/*.gif`、图标复制到静态发布目录。下载按钮固定指向当前预览版 GitHub Release 资产。页面支持键盘操作、响应式布局及减少动态效果偏好。
 
 GitHub Actions 在 Windows/macOS 构建未签名安装包并发布 Release。下载官网由本仓库的 `.github/workflows/deploy-site.yml` 独立部署。该工作流用本仓库 `production` 环境的专用 `SITE_SSH_PRIVATE_KEY` 与 `SITE_SSH_KNOWN_HOSTS` 登录既有服务器；打包后的站点放在 `/var/www/taoqi-pet/releases/<commit>`，原子切换 `current` 符号链接。独立的 `pet.ganzhibin.icu` Nginx 虚拟主机提供静态文件，Certbot 使用 webroot 申请 HTTPS 证书。工作流不依赖其他项目仓库或其密钥。
+
+## 图标完整性校验
+
+`package.json` 明确指定 macOS 应用与 DMG 的 ICNS、Windows 应用与 NSIS 安装程序的 ICO。`scripts/check-app-icons.js` 在 `npm run check` 中验证 ICNS 头部总长度和图像块边界，并验证 ICO 图像索引；若仓库中的二进制资源被截断，CI 和发布构建会在打包前失败。此校验针对资源文件，不代替 Windows/macOS 实机图标验收。

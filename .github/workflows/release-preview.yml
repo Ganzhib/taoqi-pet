@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: v0.3.0-preview.2
+      TAG: v0.3.0-preview.3
     steps:
       - uses: actions/checkout@v4
       - name: Prepare draft release
@@ -26,8 +26,8 @@ jobs:
             test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
           else
             gh release create "$TAG" --draft --target "$GITHUB_SHA" \
-              --title "淘气桌宠 v0.3.0 预览版 2" \
-              --notes-file docs/releases/v0.3.0-preview.2.md
+              --title "淘气桌宠 v0.3.0 预览版 3" \
+              --notes-file docs/releases/v0.3.0-preview.3.md
           fi
 
   package:
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: v0.3.0-preview.2
+      TAG: v0.3.0-preview.3
     steps:
       - uses: actions/checkout@v4
       - name: Verify update manifests and publish release
@@ -72,10 +72,10 @@ jobs:
           gh release view "$TAG" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/assets.txt"
           grep -Fx 'preview.yml' "$RUNNER_TEMP/assets.txt"
           grep -Fx 'preview-mac.yml' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-setup-0.3.0-preview.2-win-x64.exe' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-portable-0.3.0-preview.2-win-x64.exe' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-0.3.0-preview.2-mac-arm64.dmg' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-0.3.0-preview.2-mac-x64.dmg' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-setup-0.3.0-preview.3-win-x64.exe' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-portable-0.3.0-preview.3-win-x64.exe' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-0.3.0-preview.3-mac-arm64.dmg' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-0.3.0-preview.3-mac-x64.dmg' "$RUNNER_TEMP/assets.txt"
           gh release edit "$TAG" --draft=false --prerelease \
-            --title "淘气桌宠 v0.3.0 预览版 2" \
-            --notes-file docs/releases/v0.3.0-preview.2.md
+            --title "淘气桌宠 v0.3.0 预览版 3" \
+            --notes-file docs/releases/v0.3.0-preview.3.md

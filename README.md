@@ -48,7 +48,7 @@
 
 ## 发布状态
 
-[v0.3.0-preview.2 预览版](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0-preview.2) 提供 Windows 和 macOS 未签名安装包，并首次加入版本提醒。Windows 安装版可在后续版本发布时原地更新；已安装的 preview.1 需要手动安装 preview.2 一次。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
+[v0.3.0-preview.3 预览版](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0-preview.3) 提供 Windows 和 macOS 未签名安装包，修复 macOS 应用图标，并保留版本提醒。Windows 安装版可从 preview.2 自动更新到本版；已安装的 preview.1 需要手动安装新版一次。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
 
 更新机制的适用范围和发布流程见[自动更新设计](docs/auto-update/requirements.md)。本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
 
