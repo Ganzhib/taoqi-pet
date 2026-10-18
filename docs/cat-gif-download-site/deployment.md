@@ -6,6 +6,16 @@
 
 使用**仅供淘气桌宠官网部署**的 SSH 密钥。请在你的设备上生成密钥对，把公钥添加到服务器 root 账号的 `~/.ssh/authorized_keys`，把私钥全文保存为本仓库 GitHub Environment `production` 的 Secret `SITE_SSH_PRIVATE_KEY`。将服务器已验证的 SSH 主机公钥行保存为同一环境的 Secret `SITE_SSH_KNOWN_HOSTS`。不要把私钥发到聊天或提交进仓库。
 
+在 macOS 终端生成密钥：
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/taoqi-pet-site -C taoqi-pet-site
+cat ~/.ssh/taoqi-pet-site.pub | ssh root@150.158.27.165 'umask 077; mkdir -p ~/.ssh; cat >> ~/.ssh/authorized_keys'
+ssh-keyscan -t ed25519 150.158.27.165
+```
+
+把 `~/.ssh/taoqi-pet-site` 的**完整私钥内容**粘贴到 `SITE_SSH_PRIVATE_KEY`；把最后一条命令输出的主机公钥行粘贴到 `SITE_SSH_KNOWN_HOSTS`。添加主机公钥前，最好与服务器上 `/etc/ssh/ssh_host_ed25519_key.pub` 的指纹核对。GitHub 路径：本仓库 **Settings → Environments → production → Environment secrets**。
+
 工作流要求该密钥能以 root 登录当前服务器，因为首次部署需要创建独立 Nginx 虚拟主机和申请证书。它只管理 `/var/www/taoqi-pet` 与 `/etc/nginx/sites-available/pet.ganzhibin.icu`，不覆盖其他站点的文件。DNS 的 `pet` A 记录应指向 `150.158.27.165`。
 
 ## 发布与验收
