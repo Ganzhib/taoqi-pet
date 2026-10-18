@@ -41,6 +41,8 @@ function react(kind) {
   if (kind === "tap") {
     message = character.tap[reactionIndex++ % character.tap.length];
   }
+  delete pet.dataset.reaction;
+  void pet.offsetWidth;
   pet.dataset.reaction = kind;
   clearTimeout(reactionTimer);
   reactionTimer = setTimeout(() => delete pet.dataset.reaction, 650);
