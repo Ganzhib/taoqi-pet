@@ -255,6 +255,17 @@ async function importCustomPet() {
   return pet.id;
 }
 
+function renameCustomPet(id, value) {
+  const pet = settings.customPets.find((entry) => entry.id === id);
+  if (!pet || typeof value !== "string") return false;
+  const name = value.trim().slice(0, 32);
+  if (!name) return false;
+  pet.name = name;
+  saveSettings();
+  notifyMarket();
+  return true;
+}
+
 async function removeCustomPet(id) {
   const pet = settings.customPets.find((entry) => entry.id === id);
   if (!pet) return false;
@@ -525,6 +536,7 @@ if (!app.requestSingleInstanceLock()) {
       }
     });
     ipcMain.handle("market:remove", (_event, id) => removeCustomPet(id));
+    ipcMain.handle("market:rename", (_event, id, name) => renameCustomPet(id, name));
     ipcMain.on("pet:show-menu", showPetMenu);
     ipcMain.on("pet:drag-start", beginDrag);
     ipcMain.on("pet:drag-move", moveDrag);

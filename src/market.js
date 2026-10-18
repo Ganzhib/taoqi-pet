@@ -49,8 +49,37 @@ function createCard(pet, version) {
     }
   });
   actions.append(select);
+  card.append(preview, meta, description, actions);
 
   if (pet.source === "custom") {
+    const editor = element("form", "name-editor");
+    editor.hidden = true;
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.maxLength = 32;
+    nameInput.required = true;
+    nameInput.value = pet.name;
+    nameInput.setAttribute("aria-label", "修改" + pet.name + "的名称");
+    const saveName = element("button", "remove-button", "保存");
+    saveName.type = "submit";
+    editor.append(nameInput, saveName);
+    editor.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        if (await window.petMarket.renamePet(pet.id, nameInput.value)) await refresh();
+        else status.textContent = "请输入宠物名称。";
+      } catch (error) {
+        status.textContent = error.message;
+      }
+    });
+    const rename = element("button", "remove-button", "改名");
+    rename.type = "button";
+    rename.addEventListener("click", () => {
+      editor.hidden = !editor.hidden;
+      if (!editor.hidden) nameInput.focus();
+    });
+    actions.append(rename);
+    card.insertBefore(editor, actions);
     const remove = element("button", "remove-button", "删除");
     remove.type = "button";
     remove.setAttribute("aria-label", "删除" + pet.name);
@@ -64,7 +93,6 @@ function createCard(pet, version) {
     actions.append(remove);
   }
 
-  card.append(preview, meta, description, actions);
   return card;
 }
 
