@@ -325,7 +325,7 @@ function showHelp() {
     type: "info",
     title: "淘气桌宠使用帮助",
     message: "陪伴，随时由你决定",
-    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。安静模式会暂停游走和自动提示。工具铺只会在你点击后打开。",
+    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场。安静模式会暂停游走和自动提示。工具铺只会在你点击后打开。",
     buttons: ["知道了"],
   });
 }
@@ -546,6 +546,7 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle("market:remove", (_event, id) => removeCustomPet(id));
     ipcMain.handle("market:rename", (_event, id, name) => renameCustomPet(id, name));
     ipcMain.on("pet:show-menu", showPetMenu);
+    ipcMain.on("pet:open-market", openMarket);
     ipcMain.on("pet:drag-start", beginDrag);
     ipcMain.on("pet:drag-move", moveDrag);
     ipcMain.on("pet:drag-end", endDrag);

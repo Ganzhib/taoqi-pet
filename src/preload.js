@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("taoqiPet", {
   getState: () => ipcRenderer.invoke("pet:get-state"),
   getArtwork: (id) => ipcRenderer.invoke("pet:get-artwork", id),
   showMenu: () => ipcRenderer.send("pet:show-menu"),
+  openMarket: () => ipcRenderer.send("pet:open-market"),
   dragStart: () => ipcRenderer.send("pet:drag-start"),
   dragMove: () => ipcRenderer.send("pet:drag-move"),
   dragEnd: () => ipcRenderer.send("pet:drag-end"),

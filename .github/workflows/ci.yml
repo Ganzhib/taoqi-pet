@@ -7,6 +7,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,3 +17,11 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run check
       - run: npm test
+      - run: xvfb-run -a npm run smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: electron-smoke-screenshots
+          path: artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 7

@@ -185,6 +185,10 @@ pet.addEventListener("keydown", (event) => {
     event.preventDefault();
     react("tap");
   }
+  if (event.key.toLowerCase() === "m") {
+    event.preventDefault();
+    window.taoqiPet.openMarket();
+  }
   if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
     event.preventDefault();
     window.taoqiPet.showMenu();
