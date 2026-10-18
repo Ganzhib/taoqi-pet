@@ -18,6 +18,7 @@ async function run() {
     assert.ok(userData.startsWith(profile + path.sep), "验收必须使用隔离的用户数据目录");
     const pet = await application.firstWindow();
     pet.on("pageerror", (error) => pageErrors.push("pet: " + error.message));
+    await pet.locator("#pet-art").waitFor();
     await pet.waitForFunction(() => {
       const image = document.getElementById("pet-art");
       return image.complete && image.naturalWidth > 0;
