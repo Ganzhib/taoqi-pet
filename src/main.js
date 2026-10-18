@@ -1,7 +1,8 @@
 const { app, BrowserWindow, Menu, Tray, dialog, ipcMain, nativeImage, screen, shell } = require("electron");
 const fs = require("node:fs");
+const { randomUUID } = require("node:crypto");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, DECORATIONS, clampToWorkArea } = require("./pet-core");
+const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, detectImageType, isValidCustomPet, clampToWorkArea } = require("./pet-core");
 
 const BASE_SIZE = { width: 240, height: 280 };
 const DEFAULT_SETTINGS = {
@@ -11,6 +12,7 @@ const DEFAULT_SETTINGS = {
   scale: 1,
   characterId: "caramel",
   decorationId: "none",
+  customPets: [],
   position: null,
   focusEndsAt: null,
 };
@@ -19,6 +21,7 @@ const ICON_PATH = path.join(__dirname, "../assets/icon.png");
 
 let petWindow;
 let tray;
+let marketWindow = null;
 let settings;
 let dragOrigin = null;
 let walkTimeout = null;
@@ -29,17 +32,26 @@ function settingsPath() {
   return path.join(app.getPath("userData"), "settings.json");
 }
 
+function customPetPath(pet) {
+  return path.join(app.getPath("userData"), "pets", pet.id + "." + pet.extension);
+}
+
 function readSettings() {
   try {
     const saved = JSON.parse(fs.readFileSync(settingsPath(), "utf8"));
+    const customPets = (Array.isArray(saved.customPets) ? saved.customPets : [])
+      .filter(isValidCustomPet)
+      .map((pet) => ({ id: pet.id, name: pet.name.trim().slice(0, 32), extension: pet.extension }))
+      .filter((pet) => fs.existsSync(customPetPath(pet)));
     const now = Date.now();
     return {
       roaming: saved.roaming !== false,
       quietMode: saved.quietMode === true,
       alwaysOnTop: saved.alwaysOnTop !== false,
       scale: [1, 1.25, 1.5].includes(saved.scale) ? saved.scale : 1,
-      characterId: CHARACTERS.some((character) => character.id === saved.characterId)
+      characterId: [...CHARACTERS, ...customPets].some((character) => character.id === saved.characterId)
         ? saved.characterId : DEFAULT_SETTINGS.characterId,
+      customPets,
       decorationId: DECORATIONS.some((decoration) => decoration.id === saved.decorationId)
         ? saved.decorationId : DEFAULT_SETTINGS.decorationId,
       position: saved.position && Number.isFinite(saved.position.x) && Number.isFinite(saved.position.y)
@@ -172,6 +184,124 @@ function toggleFocus() {
   updateTrayMenu();
 }
 
+function getCatalog() {
+  return {
+    selectedId: settings.characterId,
+    pets: [
+      ...CHARACTERS.map((pet) => ({ ...pet, source: "built-in" })),
+      ...settings.customPets.map((pet) => ({
+        id: pet.id, name: pet.name, category: "我的创作",
+        description: "你导入的专属宠物。", source: "custom",
+      })),
+    ],
+  };
+}
+
+function notifyMarket() {
+  if (marketWindow && !marketWindow.isDestroyed()) {
+    marketWindow.webContents.send("market:catalog", getCatalog());
+  }
+}
+
+function getArtwork(id) {
+  const builtIn = CHARACTERS.find((pet) => pet.id === id);
+  const custom = settings.customPets.find((pet) => pet.id === id);
+  if (!builtIn && !custom) return null;
+  const file = builtIn
+    ? path.join(__dirname, "../assets/pets", builtIn.id + ".svg")
+    : customPetPath(custom);
+  const mime = builtIn ? "image/svg+xml"
+    : IMAGE_TYPES.find((type) => type.extension === custom.extension).mime;
+  try {
+    return "data:" + mime + ";base64," + fs.readFileSync(file).toString("base64");
+  } catch {
+    return null;
+  }
+}
+
+function selectCharacter(id) {
+  if (![...CHARACTERS, ...settings.customPets].some((pet) => pet.id === id)) return false;
+  updateSettings({ characterId: id });
+  notifyMarket();
+  return true;
+}
+
+async function importCustomPet() {
+  const result = await dialog.showOpenDialog(marketWindow, {
+    title: "导入我的宠物",
+    filters: [{ name: "图片", extensions: ["png", "jpg", "jpeg", "gif", "webp"] }],
+    properties: ["openFile"],
+  });
+  if (result.canceled) return null;
+  const source = result.filePaths[0];
+  if (fs.statSync(source).size > 5 * 1024 * 1024) {
+    throw new Error("图片不能超过 5 MB。");
+  }
+  const bytes = fs.readFileSync(source);
+  const type = detectImageType(bytes);
+  if (!type) throw new Error("请选择 PNG、JPG、GIF 或 WebP 图片。");
+  const pet = {
+    id: "custom-" + randomUUID(),
+    name: path.parse(source).name.trim().slice(0, 32) || "我的宠物",
+    extension: type.extension,
+  };
+  fs.mkdirSync(path.dirname(customPetPath(pet)), { recursive: true });
+  fs.writeFileSync(customPetPath(pet), bytes);
+  settings.customPets.push(pet);
+  settings.characterId = pet.id;
+  saveSettings();
+  sendState();
+  notifyMarket();
+  return pet.id;
+}
+
+async function removeCustomPet(id) {
+  const pet = settings.customPets.find((entry) => entry.id === id);
+  if (!pet) return false;
+  const { response } = await dialog.showMessageBox(marketWindow, {
+    type: "question",
+    title: "删除自定义宠物",
+    message: "删除“" + pet.name + "”？",
+    detail: "这会删除保存在淘气桌宠中的图片，原始文件不会受影响。",
+    buttons: ["取消", "删除"],
+    defaultId: 0,
+    cancelId: 0,
+  });
+  if (response !== 1) return false;
+  fs.rmSync(customPetPath(pet), { force: true });
+  settings.customPets = settings.customPets.filter((entry) => entry.id !== id);
+  if (settings.characterId === id) settings.characterId = DEFAULT_SETTINGS.characterId;
+  saveSettings();
+  sendState();
+  notifyMarket();
+  return true;
+}
+
+function openMarket() {
+  if (marketWindow && !marketWindow.isDestroyed()) {
+    marketWindow.focus();
+    return;
+  }
+  marketWindow = new BrowserWindow({
+    width: 840,
+    height: 640,
+    minWidth: 680,
+    minHeight: 500,
+    title: "淘气宠物市场",
+    icon: ICON_PATH,
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "market-preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  marketWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  marketWindow.loadFile(path.join(__dirname, "market.html"));
+  marketWindow.on("closed", () => { marketWindow = null; });
+}
+
 function performActivity(action) {
   showPet();
   petWindow.webContents.send("pet:action", action);
@@ -183,7 +313,7 @@ function showHelp() {
     type: "info",
     title: "淘气桌宠使用帮助",
     message: "陪伴，随时由你决定",
-    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。安静模式会暂停游走和自动提示，主动互动仍可使用。所有桌宠功能永久免费，工具铺只会在你点击后打开。",
+    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。安静模式会暂停游走和自动提示。工具铺只会在你点击后打开。",
     buttons: ["知道了"],
   });
 }
@@ -234,11 +364,12 @@ function menuTemplate() {
     ? Math.max(0, Math.ceil((settings.focusEndsAt - Date.now()) / 60000)) : 0;
   const items = [
     { label: petWindow.isVisible() ? "隐藏宠物" : "显示宠物", click: togglePetVisibility },
-    { label: "角色", submenu: CHARACTERS.map((character) => ({
+    { label: "宠物市场…", click: openMarket },
+    { label: "快速切换角色", submenu: CHARACTERS.map((character) => ({
       label: character.name,
       type: "radio",
       checked: settings.characterId === character.id,
-      click: () => updateSettings({ characterId: character.id }),
+      click: () => selectCharacter(character.id),
     })) },
     { label: "装扮", submenu: DECORATIONS.map((decoration) => ({
       label: decoration.name,
@@ -381,6 +512,19 @@ if (!app.requestSingleInstanceLock()) {
     app.setName("淘气桌宠");
     settings = readSettings();
     ipcMain.handle("pet:get-state", () => ({ ...settings, focusActive: isFocusActive() }));
+    ipcMain.handle("pet:get-artwork", (_event, id) => getArtwork(id));
+    ipcMain.handle("market:get-catalog", getCatalog);
+    ipcMain.handle("market:select", (_event, id) => selectCharacter(id));
+    ipcMain.handle("market:artwork", (_event, id) => getArtwork(id));
+    ipcMain.handle("market:import", async () => {
+      try {
+        return await importCustomPet();
+      } catch (error) {
+        dialog.showErrorBox("导入失败", error.message);
+        return null;
+      }
+    });
+    ipcMain.handle("market:remove", (_event, id) => removeCustomPet(id));
     ipcMain.on("pet:show-menu", showPetMenu);
     ipcMain.on("pet:drag-start", beginDrag);
     ipcMain.on("pet:drag-move", moveDrag);

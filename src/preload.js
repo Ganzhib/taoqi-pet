@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("taoqiPet", {
   getState: () => ipcRenderer.invoke("pet:get-state"),
+  getArtwork: (id) => ipcRenderer.invoke("pet:get-artwork", id),
   showMenu: () => ipcRenderer.send("pet:show-menu"),
   dragStart: () => ipcRenderer.send("pet:drag-start"),
   dragMove: () => ipcRenderer.send("pet:drag-move"),
