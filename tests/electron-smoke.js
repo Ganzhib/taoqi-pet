@@ -118,7 +118,7 @@ async function run() {
     savedHome.on("pageerror", (error) => pageErrors.push("home: " + error.message));
     await savedHome.waitForFunction(() =>
       document.getElementById("room").dataset.theme === "night" &&
-      document.getElementById("furniture").dataset.furniture === "box" &&
+      document.getElementById("furniture").dataset.furniture === "basket" &&
       document.getElementById("best-score").textContent === "最佳 1 条"
     );
 
