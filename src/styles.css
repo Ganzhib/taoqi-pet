@@ -140,6 +140,33 @@ html, body {
   background: var(--fur);
 }
 
+.accessory {
+  position: absolute;
+  z-index: 4;
+  top: -18px;
+  left: 25px;
+  pointer-events: none;
+}
+
+.pet[data-decoration="star"] .accessory::before {
+  content: "★";
+  color: #ffe473;
+  font-size: 34px;
+  -webkit-text-stroke: 2px #49375d;
+}
+
+.pet[data-decoration="bow"] .accessory::before {
+  content: "🎀";
+  font-size: 32px;
+}
+
+.pet[data-decoration="flower"] .accessory::before {
+  content: "✿";
+  color: #f6b4cb;
+  font-size: 36px;
+  -webkit-text-stroke: 2px #49375d;
+}
+
 .ear {
   position: absolute;
   z-index: -1;
@@ -241,6 +268,9 @@ html, body {
 .pet[data-reaction="tap"] .head { animation: hop .38s ease-out 2 alternate; }
 .pet[data-reaction="double"] .head { animation: hop .3s ease-out 4 alternate; }
 .pet[data-reaction="long"] .head { animation: nuzzle .65s ease-in-out; }
+.pet[data-reaction="feed"] .head { animation: nuzzle .4s ease-in-out 2; }
+.pet[data-reaction="play"] .head { animation: hop .25s ease-out 4 alternate; }
+.pet[data-reaction="praise"] .head { animation: celebrate .7s ease-in-out; }
 .pet.quiet .tail, .pet.quiet .eye { animation: none; }
 .pet.focused { filter: drop-shadow(0 10px 5px #34264a30) saturate(.7); }
 
@@ -249,6 +279,7 @@ html, body {
 @keyframes walk { to { transform: translateX(-50%) translateY(-5px) rotate(2deg); } }
 @keyframes hop { to { transform: translateY(-8px); } }
 @keyframes nuzzle { 50% { transform: rotate(-7deg) translateY(5px); } }
+@keyframes celebrate { 30% { transform: rotate(-9deg); } 70% { transform: rotate(9deg); } }
 
 @media (prefers-reduced-motion: reduce) {
   .tail, .eye, .pet.walking, .pet[data-reaction] .head { animation: none; }

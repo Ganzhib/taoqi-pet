@@ -1,7 +1,7 @@
 const { app, BrowserWindow, Menu, Tray, dialog, ipcMain, nativeImage, screen, shell } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, clampToWorkArea } = require("./pet-core");
+const { TOOLBOX_URL, CHARACTERS, DECORATIONS, clampToWorkArea } = require("./pet-core");
 
 const BASE_SIZE = { width: 240, height: 280 };
 const DEFAULT_SETTINGS = {
@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = {
   alwaysOnTop: true,
   scale: 1,
   characterId: "caramel",
+  decorationId: "none",
   position: null,
   focusEndsAt: null,
 };
@@ -39,6 +40,8 @@ function readSettings() {
       scale: [1, 1.25, 1.5].includes(saved.scale) ? saved.scale : 1,
       characterId: CHARACTERS.some((character) => character.id === saved.characterId)
         ? saved.characterId : DEFAULT_SETTINGS.characterId,
+      decorationId: DECORATIONS.some((decoration) => decoration.id === saved.decorationId)
+        ? saved.decorationId : DEFAULT_SETTINGS.decorationId,
       position: saved.position && Number.isFinite(saved.position.x) && Number.isFinite(saved.position.y)
         ? { x: Math.round(saved.position.x), y: Math.round(saved.position.y) } : null,
       focusEndsAt: Number.isFinite(saved.focusEndsAt) &&
@@ -169,6 +172,22 @@ function toggleFocus() {
   updateTrayMenu();
 }
 
+function performActivity(action) {
+  showPet();
+  petWindow.webContents.send("pet:action", action);
+}
+
+function showHelp() {
+  showPet();
+  dialog.showMessageBox(petWindow, {
+    type: "info",
+    title: "淘气桌宠使用帮助",
+    message: "陪伴，随时由你决定",
+    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。安静模式会暂停游走和自动提示，主动互动仍可使用。所有桌宠功能永久免费，工具铺只会在你点击后打开。",
+    buttons: ["知道了"],
+  });
+}
+
 async function openToolbox() {
   try {
     await shell.openExternal(TOOLBOX_URL);
@@ -221,6 +240,17 @@ function menuTemplate() {
       checked: settings.characterId === character.id,
       click: () => updateSettings({ characterId: character.id }),
     })) },
+    { label: "装扮", submenu: DECORATIONS.map((decoration) => ({
+      label: decoration.name,
+      type: "radio",
+      checked: settings.decorationId === decoration.id,
+      click: () => updateSettings({ decorationId: decoration.id }),
+    })) },
+    { label: "和它互动", submenu: [
+      { label: "喂小鱼", click: () => performActivity("feed") },
+      { label: "陪它玩", click: () => performActivity("play") },
+      { label: "夸夸它", click: () => performActivity("praise") },
+    ] },
     { label: "安静模式", type: "checkbox", checked: settings.quietMode,
       click: (item) => updateSettings({ quietMode: item.checked }) },
     { label: "暂停自主活动", type: "checkbox", checked: !settings.roaming,
@@ -248,6 +278,7 @@ function menuTemplate() {
     ] },
     { type: "separator" },
     { label: "回到屏幕右下角", click: resetPosition },
+    { label: "使用帮助", click: showHelp },
     { label: "退出", click: () => app.quit() },
   );
   return items;

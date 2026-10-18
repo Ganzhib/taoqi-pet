@@ -7,16 +7,25 @@ const reactions = {
     tap: ["你好呀！", "今天也一起加油！", "我在这里陪你。"],
     double: "跳两下给你看！",
     long: "呼噜呼噜～",
+    feed: "小鱼真香，谢谢你！",
+    play: "再追一次毛线球！",
+    praise: "我会继续陪着你！",
   },
   night: {
     tap: ["星星还亮着呢。", "慢一点也没关系。", "陪你安静待一会儿。"],
     double: "被你发现啦！",
     long: "让我再眯一小会儿。",
+    feed: "这条鱼像星星一样好吃。",
+    play: "夜里也能一起玩。",
+    praise: "偷偷开心一下。",
   },
   mint: {
     tap: ["出发吧！", "来点新灵感！", "今天会很顺利的。"],
     double: "耶！再玩一次！",
     long: "抱抱充电中～",
+    feed: "能量补满啦！",
+    play: "毛线球，冲呀！",
+    praise: "今天更有精神了！",
   },
 };
 let characterId = "caramel";
@@ -49,7 +58,8 @@ function react(kind) {
   void pet.offsetWidth;
   pet.dataset.reaction = kind;
   clearTimeout(reactionTimer);
-  reactionTimer = setTimeout(() => delete pet.dataset.reaction, 650);
+  const duration = kind === "double" || kind === "play" ? 1250 : 650;
+  reactionTimer = setTimeout(() => delete pet.dataset.reaction, duration);
   showBubble(message);
 }
 
@@ -70,6 +80,7 @@ function applyState(state) {
   quietMode = state.quietMode;
   focusEndsAt = state.focusEndsAt;
   pet.dataset.character = characterId;
+  pet.dataset.decoration = state.decorationId;
   pet.classList.toggle("focused", state.focusActive);
   pet.classList.toggle("quiet", quietMode);
   pet.style.scale = state.scale;
@@ -124,11 +135,16 @@ pet.addEventListener("keydown", (event) => {
     event.preventDefault();
     react("tap");
   }
+  if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
+    event.preventDefault();
+    window.taoqiPet.showMenu();
+  }
 });
 
 window.taoqiPet.onMotion((motion) => {
   pet.classList.toggle("walking", motion === "walk");
 });
+window.taoqiPet.onAction(react);
 window.taoqiPet.onNotice((message) => {
   if (!quietMode) showBubble(message);
 });

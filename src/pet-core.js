@@ -6,6 +6,13 @@ const CHARACTERS = [
   { id: "mint", name: "薄荷猫" },
 ];
 
+const DECORATIONS = [
+  { id: "none", name: "不戴饰品" },
+  { id: "star", name: "星星发夹" },
+  { id: "bow", name: "蝴蝶结" },
+  { id: "flower", name: "小花" },
+];
+
 function clampToWorkArea(bounds, workArea) {
   const maxX = Math.max(workArea.x, workArea.x + workArea.width - bounds.width);
   const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
@@ -16,4 +23,4 @@ function clampToWorkArea(bounds, workArea) {
   };
 }
 
-module.exports = { TOOLBOX_URL, CHARACTERS, clampToWorkArea };
+module.exports = { TOOLBOX_URL, CHARACTERS, DECORATIONS, clampToWorkArea };

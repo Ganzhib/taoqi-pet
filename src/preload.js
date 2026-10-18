@@ -16,6 +16,11 @@ contextBridge.exposeInMainWorld("taoqiPet", {
     ipcRenderer.on("pet:motion", listener);
     return () => ipcRenderer.off("pet:motion", listener);
   },
+  onAction: (callback) => {
+    const listener = (_event, action) => callback(action);
+    ipcRenderer.on("pet:action", listener);
+    return () => ipcRenderer.off("pet:action", listener);
+  },
   onNotice: (callback) => {
     const listener = (_event, notice) => callback(notice);
     ipcRenderer.on("pet:notice", listener);
