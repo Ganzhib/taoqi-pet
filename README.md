@@ -43,7 +43,7 @@
 
     npm run dist
 
-也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。当前可访问的[下载官网](https://ganzhib.github.io/taoqi-pet/)以咕咕嘎嘎和可自定义桌宠为主线，桌面应用提供 8 位免费内置伙伴、本地图片导入与可视化捏宠；独立域名为 `pet.ganzhibin.icu`。
+也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。当前可访问的[下载官网](https://ganzhib.github.io/taoqi-pet/)以咕咕嘎嘎和可自定义桌宠为主线，桌面应用提供 8 位免费内置伙伴、本地图片导入与可视化捏宠；本次发布不部署独立域名。
 
 产品定位、技术设计与后续任务见[产品与技术规划](docs/product-technical-plan.md)。新增页面和角色时请遵循[代码结构与命名约定](docs/code-structure.md)。
 
