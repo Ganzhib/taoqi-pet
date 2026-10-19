@@ -1,5 +1,10 @@
 name: Publish unsigned preview
 
+# 预览版发布工作流。跟 release.yml 用同一套版本号读法：
+# 1. 触发前先把 package.json 的 version 改成 v0.3.0-preview.4（举例）
+# 2. 工作流从 version 字段读出整个 tag，避免硬编码
+# 3. 产物名里嵌的预览后缀会自动跟着走
+
 on:
   workflow_dispatch:
 
@@ -13,21 +18,32 @@ concurrency:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: v0.3.0-preview.3
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read version from package.json
+        id: v
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Prepare draft release
+        env:
+          TAG: v${{ steps.v.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v$VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
             test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
           else
-            gh release create "$TAG" --draft --target "$GITHUB_SHA" \
-              --title "淘气桌宠 v0.3.0 预览版 3" \
-              --notes-file docs/releases/v0.3.0-preview.3.md
+            gh release create "$TAG" --draft --prerelease --target "$GITHUB_SHA" \
+              --title "淘气桌宠 $TAG" \
+              --notes-file "docs/releases/$TAG.md"
           fi
 
   package:
@@ -58,24 +74,27 @@ jobs:
         run: npx electron-builder --${{ matrix.platform }} --publish always
 
   publish:
-    needs: package
+    # prepare 必须直接列进 needs：needs.<job>.outputs 只对直接依赖求值
+    needs: [prepare, package]
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: v0.3.0-preview.3
     steps:
       - uses: actions/checkout@v4
       - name: Verify update manifests and publish release
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
+          TAG="v$VERSION"
           gh release view "$TAG" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/assets.txt"
           grep -Fx 'preview.yml' "$RUNNER_TEMP/assets.txt"
           grep -Fx 'preview-mac.yml' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-setup-0.3.0-preview.3-win-x64.exe' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-portable-0.3.0-preview.3-win-x64.exe' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-0.3.0-preview.3-mac-arm64.dmg' "$RUNNER_TEMP/assets.txt"
-          grep -Fx 'taoqi-pet-0.3.0-preview.3-mac-x64.dmg' "$RUNNER_TEMP/assets.txt"
+          grep -Fx "taoqi-pet-setup-$VERSION-win-x64.exe" "$RUNNER_TEMP/assets.txt"
+          grep -Fx "taoqi-pet-portable-$VERSION-win-x64.exe" "$RUNNER_TEMP/assets.txt"
+          grep -Fx "taoqi-pet-$VERSION-mac-arm64.dmg" "$RUNNER_TEMP/assets.txt"
+          grep -Fx "taoqi-pet-$VERSION-mac-x64.dmg" "$RUNNER_TEMP/assets.txt"
           gh release edit "$TAG" --draft=false --prerelease \
-            --title "淘气桌宠 v0.3.0 预览版 3" \
-            --notes-file docs/releases/v0.3.0-preview.3.md
+            --title "淘气桌宠 $TAG" \
+            --notes-file "docs/releases/$TAG.md"
