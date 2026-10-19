@@ -11,7 +11,7 @@ const CHARACTERS = [
   { id: "cat-cheer", name: "下班猫", category: "沙雕日常", description: "今天也是靠可爱顺利收工。" },
   { id: "kitty-idle", name: "小奶猫", category: "沙雕日常", description: "奶凶奶凶的，随时准备躺平。" },
   { id: "doggy-idle", name: "打工狗", category: "打工中", description: "尾巴摇成螺旋桨，活儿照样干完。" },
-  { id: "dragon-idle", name: "泡泡龙", category: "学习中", description: "喷的不是火，是可爱的泡泡。" },
+  { id: "dragon-idle", name: "泡泡龙", category: "沙雕日常", description: "喷的不是火，是可爱的泡泡。" },
   { id: "bunny-idle", name: "蹦蹦兔", category: "沙雕日常", description: "耳朵先答话，腿脚跟不上。" },
   { id: "blob-idle", name: "云朵团子", category: "沙雕日常", description: "软到没有骨头，只剩好脾气。" },
 ];
