@@ -1,8 +1,10 @@
 export type PetAction = "feed" | "play" | "praise";
-export type PetReaction = PetAction | "tap" | "double" | "long" | "nap";
+export type PetReaction = PetAction | "tap" | "double" | "long" | "nap" |
+  "look" | "waddle" | "slide";
 
 export interface PetState {
   roaming: boolean;
+  movementMode: "stay" | "wander" | "follow";
   quietMode: boolean;
   alwaysOnTop: boolean;
   scale: number;

@@ -43,18 +43,25 @@ export function PetApp() {
     bubbleTimer.current = window.setTimeout(() => setBubble(""), 2600);
   }, []);
 
-  const react = useCallback((kind: PetReaction) => {
+  const react = useCallback((kind: PetReaction, announce = true) => {
     const message = reactionMessage(characterId.current, kind, tapIndex.current);
+    let visualKind = kind;
+    if (kind === "tap" && characterId.current === "penguin-idle") {
+      const tapMotions: PetReaction[] = ["look", "waddle", "tap"];
+      visualKind = tapMotions[tapIndex.current % tapMotions.length];
+    }
     if (kind === "tap") tapIndex.current++;
-    setReaction((previous) => ({ kind, version: previous.version + 1 }));
+    setReaction((previous) => ({ kind: visualKind, version: previous.version + 1 }));
     clearTimeout(reactionTimer.current);
     let duration = 650;
-    if (kind === "nap") duration = 3500;
-    else if (kind === "double" || kind === "play") duration = 1250;
+    if (visualKind === "nap") duration = 3500;
+    else if (visualKind === "double" || visualKind === "play") duration = 1250;
+    else if (visualKind === "look" || visualKind === "slide") duration = 1400;
+    else if (visualKind === "waddle") duration = 1800;
     reactionTimer.current = window.setTimeout(() => {
       setReaction((previous) => ({ ...previous, kind: null }));
     }, duration);
-    showBubble(message);
+    if (announce) showBubble(message);
     setIdleCycle((value) => value + 1);
   }, [showBubble]);
 
@@ -106,17 +113,21 @@ export function PetApp() {
   }, []);
 
   useEffect(() => {
-    if (!state?.roaming || state.quietMode || state.focusActive || !visible) return;
+    if (!state || state.quietMode || state.focusActive || !visible) return;
     // One idle timer owns spontaneous actions; user interaction restarts it.
+    const penguin = characterId.current === "penguin-idle";
     const timer = window.setTimeout(() => {
       if (motionRef.current === "walk") {
         setIdleCycle((value) => value + 1);
         return;
       }
-      react(Math.random() < 0.6 ? "nap" : "play");
-    }, 45000 + Math.random() * 45000);
+      const actions: PetReaction[] = penguin
+        ? ["look", "waddle", "slide", "look", "waddle", "nap"]
+        : ["nap", "nap", "play"];
+      react(actions[Math.floor(Math.random() * actions.length)], false);
+    }, penguin ? 18000 + Math.random() * 18000 : 45000 + Math.random() * 45000);
     return () => clearTimeout(timer);
-  }, [state?.roaming, state?.quietMode, state?.focusActive, visible, idleCycle, react]);
+  }, [state, visible, idleCycle, react]);
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;

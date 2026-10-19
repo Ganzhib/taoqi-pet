@@ -11,6 +11,12 @@ const CHARACTERS = [
   { id: "blob-idle", name: "云朵团子", category: "沙雕日常", description: "软到没有骨头，只剩好脾气。" },
 ];
 
+const MOVEMENT_MODES = [
+  { id: "stay", name: "原地陪伴" },
+  { id: "wander", name: "自由散步" },
+  { id: "follow", name: "跟随鼠标" },
+];
+
 const DECORATIONS = [
   { id: "none", name: "不戴饰品" },
   { id: "star", name: "星星发夹" },
@@ -59,6 +65,11 @@ function resolveCharacterId(characterId, customPets = []) {
     ? characterId : DEFAULT_CHARACTER_ID;
 }
 
+function resolveMovementMode(movementMode, roaming) {
+  if (MOVEMENT_MODES.some((mode) => mode.id === movementMode)) return movementMode;
+  return roaming === false ? "stay" : "wander";
+}
+
 function clampToWorkArea(bounds, workArea) {
   const maxX = Math.max(workArea.x, workArea.x + workArea.width - bounds.width);
   const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
@@ -69,10 +80,26 @@ function clampToWorkArea(bounds, workArea) {
   };
 }
 
+function nextFollowBounds(bounds, cursor, workArea, maxStep = 8, stopDistance = 90) {
+  const centerX = bounds.x + bounds.width / 2;
+  const centerY = bounds.y + bounds.height / 2;
+  const deltaX = cursor.x - centerX;
+  const deltaY = cursor.y - centerY;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (distance <= stopDistance) return bounds;
+  const step = Math.min(maxStep, distance - stopDistance);
+  return clampToWorkArea({
+    ...bounds,
+    x: Math.round(bounds.x + deltaX / distance * step),
+    y: Math.round(bounds.y + deltaY / distance * step),
+  }, workArea);
+}
+
 module.exports = {
   TOOLBOX_URL,
   DEFAULT_CHARACTER_ID,
   CHARACTERS,
+  MOVEMENT_MODES,
   DECORATIONS,
   HOME_THEMES,
   HOME_FURNITURE,
@@ -80,5 +107,7 @@ module.exports = {
   detectImageType,
   isValidCustomPet,
   resolveCharacterId,
+  resolveMovementMode,
   clampToWorkArea,
+  nextFollowBounds,
 };

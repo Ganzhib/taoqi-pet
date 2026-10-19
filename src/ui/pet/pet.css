@@ -134,8 +134,27 @@ html, body {
 .pet[data-reaction="play"] .pet-art { animation: dance .27s ease-in-out 4 alternate; }
 .pet[data-reaction="praise"] .pet-art { animation: celebrate .7s ease-in-out; }
 .pet[data-reaction="nap"] .pet-art { animation: nap 1.8s ease-in-out 2; }
+.pet[data-reaction="look"] .pet-art { animation: look-around 1.4s ease-in-out; }
+.pet[data-reaction="waddle"] .pet-art { animation: penguin-waddle .3s ease-in-out 6 alternate; }
+.pet[data-reaction="slide"] .pet-art { animation: penguin-slide 1.4s cubic-bezier(.2, .8, .2, 1); }
 .pet.focused { filter: drop-shadow(0 9px 5px #34264a30) saturate(.7); }
 .pet.quiet:not([data-reaction]) .pet-art { animation: none; }
+
+.pet::after {
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  font-size: 28px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.pet[data-reaction="feed"]::after { content: "🐟"; animation: fish-snack .9s ease-in forwards; }
+.pet[data-reaction="double"]::after,
+.pet[data-reaction="praise"]::after { content: "♥"; color: #f16f96; animation: happy-heart 1.1s ease-out; }
+.pet[data-reaction="nap"]::after { content: "Z z"; color: #7764aa; animation: sleepy-z 2.8s ease-out; }
 
 @keyframes breathe { 50% { transform: translateY(-3px) scale(1.02); } }
 @keyframes walk { to { transform: translateX(-50%) translateY(-5px) rotate(2deg); } }
@@ -144,8 +163,35 @@ html, body {
 @keyframes dance { to { transform: rotate(8deg) translateY(-5px); } }
 @keyframes nap { 50% { transform: rotate(-10deg) translateY(9px) scale(.94); } }
 @keyframes celebrate { 30% { transform: rotate(-9deg); } 70% { transform: rotate(9deg); } }
+@keyframes look-around {
+  25% { transform: rotate(-5deg) translateX(-3px); }
+  65% { transform: rotate(5deg) translateX(3px); }
+}
+@keyframes penguin-waddle { to { transform: rotate(6deg) translateX(5px) translateY(-2px); } }
+@keyframes penguin-slide {
+  20% { transform: rotate(-7deg) scaleY(.96); }
+  55% { transform: translateX(20px) rotate(7deg) scaleY(.94); }
+  80% { transform: translateX(-6px) rotate(-3deg); }
+}
+@keyframes fish-snack {
+  0% { opacity: 0; transform: translate(26px, 28px) rotate(15deg) scale(.8); }
+  35% { opacity: 1; }
+  80% { opacity: 1; transform: translate(-45px, 65px) rotate(-10deg) scale(.55); }
+  100% { opacity: 0; transform: translate(-55px, 70px) scale(.2); }
+}
+@keyframes happy-heart {
+  0% { opacity: 0; transform: translateY(18px) scale(.4); }
+  30% { opacity: 1; transform: translateY(0) scale(1.15); }
+  100% { opacity: 0; transform: translateY(-42px) scale(.8); }
+}
+@keyframes sleepy-z {
+  0% { opacity: 0; transform: translateY(16px) scale(.7); }
+  25%, 70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(12px, -38px) scale(1.05); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .pet-art, .pet.walking, .pet[data-reaction] .pet-art { animation: none; }
+  .pet::after { display: none; }
   .bubble, .hint { transition: none; }
 }

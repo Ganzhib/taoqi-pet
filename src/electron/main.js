@@ -2,7 +2,17 @@ const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeIma
 const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, DECORATIONS, HOME_THEMES, HOME_FURNITURE, detectImageType, clampToWorkArea } = require("./pet-core");
+const {
+  TOOLBOX_URL,
+  CHARACTERS,
+  MOVEMENT_MODES,
+  DECORATIONS,
+  HOME_THEMES,
+  HOME_FURNITURE,
+  detectImageType,
+  clampToWorkArea,
+  nextFollowBounds,
+} = require("./pet-core");
 
 const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSettings } = require("./settings-store");
 const { renderPetSvg } = require("./character-generator");
@@ -74,6 +84,11 @@ function scheduleWalk() {
   stopWalk();
   if (!settings.roaming || settings.quietMode || isFocusActive() || dragOrigin ||
       !petWindow || petWindow.isDestroyed() || !petWindow.isVisible()) return;
+  if (settings.movementMode === "follow") {
+    startFollow();
+    return;
+  }
+  if (settings.movementMode !== "wander") return;
   walkTimeout = setTimeout(startWalk, 14000 + Math.random() * 12000);
 }
 
@@ -83,7 +98,8 @@ function startWalk() {
   let steps = 0;
   petWindow.webContents.send("pet:motion", "walk");
   walkInterval = setInterval(() => {
-    if (dragOrigin || settings.quietMode || isFocusActive() || !settings.roaming) {
+    if (dragOrigin || settings.quietMode || isFocusActive() ||
+        settings.movementMode !== "wander") {
       scheduleWalk();
       return;
     }
@@ -96,6 +112,33 @@ function startWalk() {
     }
     petWindow.setPosition(next.x, next.y, false);
   }, 75);
+}
+
+function startFollow() {
+  if (!petWindow || petWindow.isDestroyed() || !petWindow.isVisible()) return;
+  let moving = false;
+  walkInterval = setInterval(() => {
+    if (dragOrigin || settings.quietMode || isFocusActive() ||
+        settings.movementMode !== "follow") {
+      scheduleWalk();
+      return;
+    }
+    const bounds = petWindow.getBounds();
+    const cursor = screen.getCursorScreenPoint();
+    // 跟随只在宠物当前显示器内进行，避免光标跨屏时窗口瞬间跳屏。
+    // 用户仍可像以前一样把宠物拖到另一块屏幕后继续跟随。
+    const area = screen.getDisplayMatching(bounds).workArea;
+    const next = nextFollowBounds(bounds, cursor, area);
+    const changed = next.x !== bounds.x || next.y !== bounds.y;
+    if (changed) {
+      if (!moving) petWindow.webContents.send("pet:motion", "walk");
+      moving = true;
+      petWindow.setPosition(next.x, next.y, false);
+    } else if (moving) {
+      moving = false;
+      petWindow.webContents.send("pet:motion", "idle");
+    }
+  }, 90);
 }
 
 function persistPosition() {
@@ -147,6 +190,9 @@ function applyPetWindowLevel() {
 
 function updateSettings(patch) {
   const previousDesktopLevel = settings.desktopLevel;
+  if ("movementMode" in patch) {
+    patch = { ...patch, roaming: patch.movementMode !== "stay" };
+  }
   settings = { ...settings, ...patch };
   saveSettings(settings);
   // 窗口的 type 只在创建时生效，切换层级模式只能重建窗口
@@ -157,7 +203,7 @@ function updateSettings(patch) {
     keepPetVisible();
   }
   sendState();
-  if ("roaming" in patch || "quietMode" in patch) scheduleWalk();
+  if ("movementMode" in patch || "roaming" in patch || "quietMode" in patch) scheduleWalk();
   updateTrayMenu();
   notifyHome();
 }
@@ -392,7 +438,7 @@ function showHelp() {
     type: "info",
     title: "淘气桌宠使用帮助",
     message: "陪伴，随时由你决定",
-    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可打开菜单。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场，按 H 可进入小窝。安静模式会暂停游走和自动提示。工具铺只会在你点击后于应用内打开。",
+    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可在原地陪伴、自由散步和跟随鼠标之间切换。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场，按 H 可进入小窝。安静模式会暂停移动和自动提示。工具铺只会在你点击后于应用内打开。",
     buttons: ["知道了"],
   });
 }
@@ -517,8 +563,12 @@ function menuTemplate() {
     ] },
     { label: "安静模式", type: "checkbox", checked: settings.quietMode,
       click: (item) => updateSettings({ quietMode: item.checked }) },
-    { label: "暂停自主活动", type: "checkbox", checked: !settings.roaming,
-      click: (item) => updateSettings({ roaming: !item.checked }) },
+    { label: "陪伴模式", submenu: MOVEMENT_MODES.map((mode) => ({
+      label: mode.name,
+      type: "radio",
+      checked: settings.movementMode === mode.id,
+      click: () => updateSettings({ movementMode: mode.id }),
+    })) },
     { label: isFocusActive() ? "结束专注（剩余 " + focusMinutes + " 分钟）" : "开始 25 分钟专注",
       click: toggleFocus },
     { label: "窗口层级", submenu: windowLevelItems() },

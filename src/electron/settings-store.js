@@ -8,10 +8,12 @@ const {
   HOME_FURNITURE,
   isValidCustomPet,
   resolveCharacterId,
+  resolveMovementMode,
 } = require("./pet-core");
 
 const DEFAULT_SETTINGS = {
   roaming: true,
+  movementMode: "wander",
   quietMode: false,
   alwaysOnTop: true,
   desktopLevel: false,
@@ -43,8 +45,10 @@ function readSettings() {
         ...(pet.kind === "generated" ? { kind: "generated" } : {}) }))
       .filter((pet) => fs.existsSync(customPetPath(pet)));
     const now = Date.now();
+    const movementMode = resolveMovementMode(saved.movementMode, saved.roaming);
     return {
-      roaming: saved.roaming !== false,
+      roaming: movementMode !== "stay",
+      movementMode,
       quietMode: saved.quietMode === true,
       alwaysOnTop: saved.alwaysOnTop !== false,
       desktopLevel: saved.desktopLevel === true,

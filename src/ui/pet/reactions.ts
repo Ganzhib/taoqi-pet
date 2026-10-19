@@ -63,5 +63,8 @@ export function reactionMessage(characterId: string, kind: PetReaction, tapIndex
   const character = reactions[characterId as keyof typeof reactions] ?? reactions["cat-idle"];
   if (kind === "tap") return character.tap[tapIndex % character.tap.length];
   if (kind === "nap") return "呼……让我打个小盹。";
+  if (kind === "look") return "左看看，右看看。";
+  if (kind === "waddle") return "企鹅步，出发！";
+  if (kind === "slide") return "贴地滑行！";
   return character[kind];
 }

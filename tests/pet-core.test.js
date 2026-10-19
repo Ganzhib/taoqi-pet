@@ -6,10 +6,13 @@ const {
   TOOLBOX_URL,
   DEFAULT_CHARACTER_ID,
   CHARACTERS,
+  MOVEMENT_MODES,
   detectImageType,
   isValidCustomPet,
   resolveCharacterId,
+  resolveMovementMode,
   clampToWorkArea,
+  nextFollowBounds,
 } = require("../src/electron/pet-core");
 
 test("pet stays visible on a display with a negative origin", () => {
@@ -43,6 +46,22 @@ test("已下架角色和无效选择迁移到企鹅，自定义角色保持不�
   assert.equal(resolveCharacterId("not-a-pet"), DEFAULT_CHARACTER_ID);
   const custom = { id: "custom-12345678-1234-1234-1234-123456789abc" };
   assert.equal(resolveCharacterId(custom.id, [custom]), custom.id);
+});
+
+test("陪伴模式兼容旧的暂停自主活动设置", () => {
+  assert.deepEqual(MOVEMENT_MODES.map((mode) => mode.id), ["stay", "wander", "follow"]);
+  assert.equal(resolveMovementMode("follow", true), "follow");
+  assert.equal(resolveMovementMode(undefined, false), "stay");
+  assert.equal(resolveMovementMode("unknown", true), "wander");
+});
+
+test("跟随鼠标每次只靠近一小步，并在光标附近停下", () => {
+  const area = { x: 0, y: 0, width: 1200, height: 800 };
+  const bounds = { x: 100, y: 100, width: 240, height: 280 };
+  assert.deepEqual(nextFollowBounds(bounds, { x: 220, y: 240 }, area), bounds);
+  const next = nextFollowBounds(bounds, { x: 900, y: 650 }, area);
+  assert.ok(next.x > bounds.x && next.x - bounds.x <= 8);
+  assert.ok(next.y > bounds.y && next.y - bounds.y <= 8);
 });
 
 test("every built-in character has local artwork", () => {
