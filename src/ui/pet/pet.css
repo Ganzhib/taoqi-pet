@@ -40,7 +40,7 @@ html, body {
 .bubble {
   position: absolute;
   z-index: 5;
-  top: 11px;
+  top: auto;
   left: 50%;
   max-width: 92%;
   padding: 9px 13px;
@@ -58,7 +58,7 @@ html, body {
 }
 
 .bubble.visible { opacity: 1; transform: translate(-50%, 0); }
-.stage:has(.focus-badge:not([hidden])) .bubble { top: 38px; }
+.stage:has(.focus-badge:not([hidden])) .bubble { top: 38px; bottom: auto !important; }
 
 .pet {
   position: absolute;

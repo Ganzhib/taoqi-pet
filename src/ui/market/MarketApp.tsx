@@ -4,7 +4,7 @@ import { useArtwork } from "../shared/useArtwork";
 import { CreatorPanel } from "./CreatorPanel";
 import "./market.css";
 
-const categories = ["全部", "学习中", "打工中", "沙雕日常", "我的创作"];
+const categories = ["全部", "打工中", "沙雕日常", "我的创作"];
 
 interface CardProps {
   pet: CatalogPet;

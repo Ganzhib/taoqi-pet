@@ -2,7 +2,15 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, detectImageType, isValidCustomPet, clampToWorkArea } = require("../src/electron/pet-core");
+const {
+  TOOLBOX_URL,
+  DEFAULT_CHARACTER_ID,
+  CHARACTERS,
+  detectImageType,
+  isValidCustomPet,
+  resolveCharacterId,
+  clampToWorkArea,
+} = require("../src/electron/pet-core");
 
 test("pet stays visible on a display with a negative origin", () => {
   const area = { x: -1920, y: 0, width: 1920, height: 1080 };
@@ -21,6 +29,20 @@ test("toolbox address carries only fixed source parameters", () => {
   assert.equal(url.origin, "https://next.ganzhibin.icu");
   assert.equal(url.searchParams.get("utm_source"), "taoqi_pet");
   assert.deepEqual([...url.searchParams.keys()], ["utm_source", "utm_medium", "utm_content"]);
+});
+
+test("企鹅是默认角色，内置目录只保留一只猫", () => {
+  assert.equal(DEFAULT_CHARACTER_ID, "penguin-idle");
+  assert.equal(CHARACTERS[0].id, DEFAULT_CHARACTER_ID);
+  assert.deepEqual(CHARACTERS.filter((character) => character.id.startsWith("cat-"))
+    .map((character) => character.id), ["cat-idle"]);
+});
+
+test("已下架角色和无效选择迁移到企鹅，自定义角色保持不变", () => {
+  assert.equal(resolveCharacterId("cat-study"), DEFAULT_CHARACTER_ID);
+  assert.equal(resolveCharacterId("not-a-pet"), DEFAULT_CHARACTER_ID);
+  const custom = { id: "custom-12345678-1234-1234-1234-123456789abc" };
+  assert.equal(resolveCharacterId(custom.id, [custom]), custom.id);
 });
 
 test("every built-in character has local artwork", () => {

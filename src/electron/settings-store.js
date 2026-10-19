@@ -1,7 +1,14 @@
 const { app } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
-const { CHARACTERS, DECORATIONS, HOME_THEMES, HOME_FURNITURE, isValidCustomPet } = require("./pet-core");
+const {
+  DEFAULT_CHARACTER_ID,
+  DECORATIONS,
+  HOME_THEMES,
+  HOME_FURNITURE,
+  isValidCustomPet,
+  resolveCharacterId,
+} = require("./pet-core");
 
 const DEFAULT_SETTINGS = {
   roaming: true,
@@ -9,7 +16,7 @@ const DEFAULT_SETTINGS = {
   alwaysOnTop: true,
   desktopLevel: false,
   scale: 1,
-  characterId: "cat-idle",
+  characterId: DEFAULT_CHARACTER_ID,
   decorationId: "none",
   customPets: [],
   homeThemeId: "sunny",
@@ -42,8 +49,7 @@ function readSettings() {
       alwaysOnTop: saved.alwaysOnTop !== false,
       desktopLevel: saved.desktopLevel === true,
       scale: [1, 1.25, 1.5].includes(saved.scale) ? saved.scale : 1,
-      characterId: [...CHARACTERS, ...customPets].some((character) => character.id === saved.characterId)
-        ? saved.characterId : DEFAULT_SETTINGS.characterId,
+      characterId: resolveCharacterId(saved.characterId, customPets),
       customPets,
       decorationId: DECORATIONS.some((decoration) => decoration.id === saved.decorationId)
         ? saved.decorationId : DEFAULT_SETTINGS.decorationId,

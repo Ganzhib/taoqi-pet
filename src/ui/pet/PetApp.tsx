@@ -176,17 +176,22 @@ export function PetApp() {
   const petClass = ["pet", motion === "walk" ? "walking" : "",
     state?.focusActive ? "focused" : "", state?.quietMode ? "quiet" : ""]
     .filter(Boolean).join(" ");
+  const scale = state?.scale ?? 1;
+  // The pet is scaled around its center while the window also grows. Anchor the bubble
+  // to the pet's visual top so larger sizes do not leave a large empty gap.
+  const bubbleBottom = 27 + 102.5 * (1 + scale);
 
   return (
     <main className="stage">
       {state?.focusEndsAt != null && (
         <div id="focus-badge" className="focus-badge" role="timer" aria-live="off">{focusText}</div>
       )}
-      <div id="bubble" className={"bubble" + (bubble ? " visible" : "")} aria-live="polite">{bubble}</div>
+      <div id="bubble" className={"bubble" + (bubble ? " visible" : "")}
+        style={{ bottom: bubbleBottom }} aria-live="polite">{bubble}</div>
       <div id="pet" className={petClass} role="button" tabIndex={0}
         aria-label="淘气桌宠，点击互动，拖动移动，右键打开菜单"
         data-character={state?.characterId} data-decoration={state?.decorationId}
-        data-reaction={reaction.kind ?? undefined} style={{ scale: state?.scale ?? 1 }}
+        data-reaction={reaction.kind ?? undefined} style={{ scale }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove}
         onPointerUp={finishPointer} onPointerCancel={finishPointer}
         onContextMenu={(event) => { event.preventDefault(); window.taoqiPet.showMenu(); }}

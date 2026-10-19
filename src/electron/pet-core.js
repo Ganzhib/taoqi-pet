@@ -1,20 +1,14 @@
 const TOOLBOX_URL = "https://next.ganzhibin.icu/?utm_source=taoqi_pet&utm_medium=app&utm_content=toolbox";
+const DEFAULT_CHARACTER_ID = "penguin-idle";
 
 const CHARACTERS = [
+  { id: "penguin-idle", name: "企鹅", category: "沙雕日常", description: "自带羽绒服，还是觉得冷。" },
   { id: "cat-idle", name: "发呆猫", category: "沙雕日常", description: "什么都没做，但已经很努力了。" },
-  { id: "cat-study", name: "冲刺猫", category: "学习中", description: "笔记翻开，知识正在缓慢加载。" },
-  { id: "cat-work", name: "赶工猫", category: "打工中", description: "DDL 追我，我追咖啡。" },
-  { id: "cat-coffee", name: "咖啡续命猫", category: "打工中", description: "这一杯下去，灵魂短暂上线。" },
-  { id: "cat-debug", name: "修 Bug 猫", category: "打工中", description: "它刚刚又把自己写的代码看哭了。" },
-  { id: "cat-slack", name: "摸鱼猫", category: "沙雕日常", description: "不是在偷懒，是在给大脑散热。" },
-  { id: "cat-nap", name: "装睡猫", category: "沙雕日常", description: "眼睛很清醒，嘴巴已经开始打呼。" },
-  { id: "cat-cheer", name: "下班猫", category: "沙雕日常", description: "今天也是靠可爱顺利收工。" },
   { id: "kitty-idle", name: "小奶猫", category: "沙雕日常", description: "奶凶奶凶的，随时准备躺平。" },
   { id: "doggy-idle", name: "打工狗", category: "打工中", description: "尾巴摇成螺旋桨，活儿照样干完。" },
   { id: "dragon-idle", name: "泡泡龙", category: "沙雕日常", description: "喷的不是火，是可爱的泡泡。" },
   { id: "bunny-idle", name: "蹦蹦兔", category: "沙雕日常", description: "耳朵先答话，腿脚跟不上。" },
   { id: "blob-idle", name: "云朵团子", category: "沙雕日常", description: "软到没有骨头，只剩好脾气。" },
-  { id: "penguin-idle", name: "企鹅", category: "沙雕日常", description: "自带羽绒服，还是觉得冷。" },
 ];
 
 const DECORATIONS = [
@@ -60,6 +54,11 @@ function isValidCustomPet(pet) {
       (pet.kind === "generated" && pet.extension === "svg"));
 }
 
+function resolveCharacterId(characterId, customPets = []) {
+  return [...CHARACTERS, ...customPets].some((character) => character.id === characterId)
+    ? characterId : DEFAULT_CHARACTER_ID;
+}
+
 function clampToWorkArea(bounds, workArea) {
   const maxX = Math.max(workArea.x, workArea.x + workArea.width - bounds.width);
   const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
@@ -70,4 +69,16 @@ function clampToWorkArea(bounds, workArea) {
   };
 }
 
-module.exports = { TOOLBOX_URL, CHARACTERS, DECORATIONS, HOME_THEMES, HOME_FURNITURE, IMAGE_TYPES, detectImageType, isValidCustomPet, clampToWorkArea };
+module.exports = {
+  TOOLBOX_URL,
+  DEFAULT_CHARACTER_ID,
+  CHARACTERS,
+  DECORATIONS,
+  HOME_THEMES,
+  HOME_FURNITURE,
+  IMAGE_TYPES,
+  detectImageType,
+  isValidCustomPet,
+  resolveCharacterId,
+  clampToWorkArea,
+};

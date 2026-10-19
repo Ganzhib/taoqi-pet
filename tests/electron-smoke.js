@@ -5,6 +5,9 @@ const path = require("node:path");
 const { _electron: electron } = require("playwright");
 
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "taoqi-smoke-"));
+const profileData = path.join(profile, "taoqi-pet");
+fs.mkdirSync(profileData, { recursive: true });
+fs.writeFileSync(path.join(profileData, "settings.json"), JSON.stringify({ scale: 1.5 }));
 
 // 等桌宠素材真正可显示：视频要求解出首帧，图片要求解码完成。
 // 失败时把播放器的内部状态一起抛出来，否则 CI 只能看到一句 timeout。
@@ -86,8 +89,8 @@ async function probeWebm(page) {
 
 async function run() {
   const application = await electron.launch({
-    args: ["."],
-    env: { ...process.env, XDG_CONFIG_HOME: profile },
+    args: ["--user-data-dir=" + profileData, "."],
+    env: { ...process.env, XDG_CONFIG_HOME: profile, APPDATA: profile },
   });
   const pageErrors = [];
 
@@ -98,6 +101,7 @@ async function run() {
     pet.on("pageerror", (error) => pageErrors.push("pet: " + error.message));
     await pet.locator("#pet-art").waitFor();
     await waitForArtwork(pet, "首屏桌宠素材");
+    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "penguin-idle");
 
     assert.equal(await pet.title(), "淘气桌宠");
     assert.equal(await application.evaluate(({ BrowserWindow }) =>
@@ -105,6 +109,13 @@ async function run() {
     await pet.locator("#pet").click();
     await pet.locator("#bubble.visible").waitFor();
     assert.ok(await pet.locator("#bubble").textContent());
+    const bubbleGap = await pet.evaluate(() => {
+      const bubble = document.getElementById("bubble").getBoundingClientRect();
+      const character = document.getElementById("pet").getBoundingClientRect();
+      return character.top - bubble.bottom;
+    });
+    assert.ok(bubbleGap >= -8 && bubbleGap <= 12,
+      "互动气泡应贴近宠物头顶，实际间距为 " + bubbleGap + "px");
 
     const marketOpened = application.waitForEvent("window");
     await pet.locator("#pet").press("m");
@@ -112,13 +123,11 @@ async function run() {
     market.on("pageerror", (error) => pageErrors.push("market: " + error.message));
     await market.locator(".pet-card").first().waitFor();
     assert.equal(await market.title(), "淘气宠物市场");
-    assert.equal(await market.locator(".pet-card").count(), 14);
+    assert.equal(await market.locator(".pet-card").count(), 7);
 
-    await market.locator('[data-category="学习中"]').click();
-    assert.equal(await market.locator(".pet-card").count(), 1);
-    await market.locator(".pet-card").filter({ hasText: "冲刺猫" })
+    await market.locator(".pet-card").filter({ hasText: "发呆猫" })
       .getByRole("button", { name: "选它陪伴" }).click();
-    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-study");
+    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-idle");
     await waitForArtwork(pet, "切换后的桌宠素材");
     const isVideo = await pet.evaluate(() =>
       document.getElementById("pet-art") instanceof HTMLVideoElement);
@@ -126,7 +135,7 @@ async function run() {
       assert.fail("内置宠物应当播放透明 WebM，却回退到了图片。视频试播结果: "
         + JSON.stringify(await probeWebm(pet)));
     }
-    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("pet://pets/cat-study.webm"),
+    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("pet://pets/cat-idle.webm"),
       "内置宠物素材应当走 pet:// 协议");
     await market.screenshot({ path: "artifacts/market.png" });
     await pet.screenshot({ path: "artifacts/pet.png" });
@@ -171,7 +180,7 @@ async function run() {
     });
     await market.getByRole("button", { name: "删除测试伙伴" }).click();
     await market.locator(".empty").waitFor();
-    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-idle");
+    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "penguin-idle");
 
     await market.close();
     const homeOpened = application.waitForEvent("window");
@@ -202,9 +211,9 @@ async function run() {
     const savedHome = await homeReopened;
     savedHome.on("pageerror", (error) => pageErrors.push("home: " + error.message));
     await savedHome.waitForFunction(() =>
-      document.getElementById("room").dataset.theme === "night" &&
-      document.getElementById("furniture").dataset.furniture === "basket" &&
-      document.getElementById("best-score").textContent === "最佳 1 条"
+      document.getElementById("room")?.dataset.theme === "night" &&
+      document.getElementById("furniture")?.dataset.furniture === "basket" &&
+      document.getElementById("best-score")?.textContent === "最佳 1 条"
     );
 
     const hidden = await application.evaluate(({ BrowserWindow }) => {
