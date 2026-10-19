@@ -30,6 +30,13 @@ let walkTimeout = null;
 let walkInterval = null;
 let focusTimer = null;
 let isQuitting = false;
+// 桌宠唯一的消失理由应该是「用户显式隐藏」。但 macOS 会在点击桌面、切换
+// Space 等场合把窗口收起来，所以用两个标记把情况分开：
+//   hiddenByUser —— 用户自己藏的，守卫不许插手
+//   petReady     —— 窗口还没到首次显示，守卫别提前把它弹出来
+let hiddenByUser = false;
+let petReady = false;
+let visibilityGuard = null;
 
 function windowSize() {
   return {
@@ -417,6 +424,7 @@ function openToolbox() {
 
 function showPet() {
   if (!petWindow || petWindow.isDestroyed()) return;
+  hiddenByUser = false;
   keepPetVisible();
   petWindow.showInactive();
   if (settings.alwaysOnTop) petWindow.moveTop();
@@ -424,12 +432,24 @@ function showPet() {
   updateTrayMenu();
 }
 
+// 隐藏。用户显式隐藏、关闭窗口都走这里，都会把 hiddenByUser 置上——
+// 守卫据此判断「这次是有意为之」，不去打扰。
+// 反过来，系统自己把窗口收走时不会经过这里，标记仍是 false，守卫就会拉回来。
 function hidePet() {
   if (!petWindow || petWindow.isDestroyed()) return;
+  hiddenByUser = true;
   petWindow.hide();
   clearTimeout(walkTimeout);
   stopWalk();
   updateTrayMenu();
+}
+
+// 守卫：桌宠不该自己消失。系统把它收起来时拉回来。
+function keepPetOnScreen() {
+  if (hiddenByUser || isQuitting || !petReady) return;
+  if (!petWindow || petWindow.isDestroyed()) return;
+  if (petWindow.isVisible()) return;
+  showPet();
 }
 
 function togglePetVisibility() {
@@ -580,7 +600,14 @@ function createPetWindow() {
   petWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   petWindow.loadFile(path.join(__dirname, "../../dist-ui/index.html"));
   petWindow.webContents.on("did-finish-load", sendState);
-  petWindow.once("ready-to-show", showPet);
+  petWindow.once("ready-to-show", () => {
+    petReady = true;
+    showPet();
+  });
+  // 系统把窗口收起来时立刻拉回来。延迟一拍是避免和系统的隐藏动作抢。
+  petWindow.on("hide", () => setTimeout(keepPetOnScreen, 150));
+  // 兜底：部分系统级隐藏不触发 hide 事件，定时查一次
+  visibilityGuard = setInterval(keepPetOnScreen, 3000);
   petWindow.on("close", (event) => {
     if (!isQuitting) {
       event.preventDefault();
@@ -591,6 +618,7 @@ function createPetWindow() {
   });
   petWindow.on("closed", () => {
     clearTimeout(walkTimeout);
+    clearInterval(visibilityGuard);
     stopWalk();
     petWindow = null;
   });
