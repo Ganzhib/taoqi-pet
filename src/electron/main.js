@@ -8,7 +8,12 @@ const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSe
 const { renderPetSvg } = require("./character-generator");
 const { cutoutStaticImage } = require("./cutout");
 const { resolveArtworkSource, resolveFallbackSource } = require("./animation/artwork-source");
+const { registerPetScheme, registerPetProtocol } = require("./animation/protocol");
 const { createUpdateManager } = require("./update-manager");
+
+// 自定义协议必须在 app ready 之前注册，否则 Chromium 不会按标准协议对待它，
+// <video> 也就拿不到流式数据
+registerPetScheme();
 
 const BASE_SIZE = { width: 240, height: 280 };
 const ICON_PATH = path.join(__dirname, "../../assets/icon.png");
@@ -609,6 +614,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on("second-instance", showPet);
   app.on("activate", showPet);
   app.whenReady().then(() => {
+    registerPetProtocol();
     app.setName("淘气桌宠");
     settings = readSettings();
     if (process.platform === "win32") app.setAppUserModelId("icu.ganzhibin.taoqipet");

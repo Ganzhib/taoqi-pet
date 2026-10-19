@@ -16,6 +16,17 @@ const BUILT_IN_FORMATS = [
   { extension: "gif", mime: "image/gif", kind: "gif" },
 ];
 
+// 内置素材走自定义协议，不用 data URL。
+//
+// 原因：Chromium 拒绝从 data: URL 加载媒体资源，<video src="data:video/webm;base64,...">
+// 会直接报 "Media load rejected by URL safety check"（networkState=3，无可用源）。
+// 图片没这个限制，但视频必须走真实协议。
+const PET_SCHEME = "pet";
+
+function petUrl(id, extension) {
+  return PET_SCHEME + "://pets/" + id + "." + extension;
+}
+
 // 自定义宠物的 mime 表，口径与 pet-core 的 IMAGE_TYPES 保持一致。
 const CUSTOM_MIMES = {
   png: "image/png",
@@ -30,12 +41,12 @@ const CUSTOM_MIMES = {
 // M3 起改为从容器读取真实帧数/帧间隔。
 const PIPELINE = { width: 280, height: 320, frameCount: 12, frameDelayMs: 95 };
 
-// data URL 缓存。
+// 自定义宠物的 data URL 缓存。
 //
-// 内置素材是仓库里的静态文件，运行期不会变；改造前每次 getArtwork 都要重新
-// 读盘再 base64（单张 465 KB → 约 620 KB 字符串），市场刷一次就是 13 次，
-// 白白产生几 MB 短命字符串。这里按「绝对路径 + mtime + size」缓存并在素材
-// 被替换时自动失效，同时限制条目数上限，避免自定义宠物越攒越多。
+// 内置素材走 pet:// 协议，不需要编码；自定义宠物仍然是 data URL（单张几百 KB
+// 转 base64 后还要再大三分之一）。市场刷一次就是十几次读盘加编码，白白产生
+// 几 MB 短命字符串。这里按「绝对路径 + mtime + size」缓存并在素材被替换时
+// 自动失效，同时限制条目数上限，避免自定义宠物越攒越多。
 const MAX_CACHE_ENTRIES = 64;
 const encodedCache = new Map();
 
@@ -75,13 +86,11 @@ function resolveBuiltInSource(character, skipVideo = false) {
     if (skipVideo && format.kind === "video") continue;
     const file = path.join(petsRoot(), character.id + "." + format.extension);
     if (!fs.existsSync(file)) continue;
-    const url = encodeFile(file, format.mime);
-    if (url === null) continue;
     return {
       id: character.id,
       kind: format.kind,
       mime: format.mime,
-      url,
+      url: petUrl(character.id, format.extension),
       frameCount: PIPELINE.frameCount,
       frameDelayMs: PIPELINE.frameDelayMs,
     };
@@ -140,4 +149,12 @@ function cachedEntryCount() {
   return encodedCache.size;
 }
 
-module.exports = { PIPELINE, resolveArtworkSource, resolveFallbackSource, cachedEntryCount };
+module.exports = {
+  PIPELINE,
+  PET_SCHEME,
+  petsRoot,
+  petUrl,
+  resolveArtworkSource,
+  resolveFallbackSource,
+  cachedEntryCount,
+};

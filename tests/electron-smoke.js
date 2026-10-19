@@ -126,7 +126,8 @@ async function run() {
       assert.fail("内置宠物应当播放透明 WebM，却回退到了图片。视频试播结果: "
         + JSON.stringify(await probeWebm(pet)));
     }
-    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("data:video/webm"));
+    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("pet://pets/cat-study.webm"),
+      "内置宠物素材应当走 pet:// 协议");
     await market.screenshot({ path: "artifacts/market.png" });
     await pet.screenshot({ path: "artifacts/pet.png" });
 

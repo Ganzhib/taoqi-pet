@@ -15,6 +15,7 @@ src/
     settings-store.js   本地偏好的默认值、读取与保存
     animation/
       artwork-source.js 角色 id → 素材描述（格式优先级、编码缓存）
+      protocol.js       pet:// 自定义协议，供 <video> 加载透明素材
     preloads/
       pet.js            桌宠窗口的最小桥接
       market.js         市场窗口的最小桥接

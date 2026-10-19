@@ -29,8 +29,15 @@ test("内置角色优先解析为透明 WebM 素材", () => {
     assert.equal(source.kind, "video", character.name);
     assert.equal(source.mime, "video/webm", character.name);
     assert.equal(source.id, character.id);
-    assert.ok(source.url.startsWith("data:video/webm;base64,"), character.name + " 未编码为 data URL");
+    assert.equal(source.url, "pet://pets/" + character.id + ".webm", character.name + " 素材地址不对");
   }
+});
+
+test("内置素材必须走 pet:// 协议，不能是 data URL", () => {
+  const source = resolveArtworkSource("cat-idle", contextWith([], {}));
+  assert.ok(!source.url.startsWith("data:"),
+    "视频用 data URL 会被 Chromium 的 URL 安全检查拒绝，必须是真实协议");
+  assert.ok(source.url.startsWith("pet://"));
 });
 
 test("内置角色带管线约定的帧参数", () => {
@@ -91,15 +98,20 @@ test("素材文件缺失时返回 null", () => {
   );
 });
 
-test("重复解析复用编码缓存，不再重复读盘", () => {
+test("重复解析自定义宠物复用编码缓存，不再重复读盘", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "taoqi-artwork-"));
+  const file = path.join(dir, "pet.png");
+  fs.writeFileSync(file, PNG_BYTES);
+  const custom = { id: "custom-12345678-1234-1234-1234-123456789abc", name: "我的宠物", extension: "png" };
+  const context = contextWith([custom], { [custom.id]: file });
   const original = fs.readFileSync;
   let reads = 0;
   fs.readFileSync = (...args) => { reads += 1; return original(...args); };
   try {
-    const first = resolveArtworkSource("cat-idle", contextWith([], {}));
+    const first = resolveArtworkSource(custom.id, context);
     const afterFirst = reads;
     const cached = cachedEntryCount();
-    const second = resolveArtworkSource("cat-idle", contextWith([], {}));
+    const second = resolveArtworkSource(custom.id, context);
     assert.equal(reads, afterFirst, "命中缓存时不应再次读盘");
     assert.equal(cachedEntryCount(), cached, "命中缓存不应新增条目");
     assert.equal(first.url, second.url);
@@ -116,7 +128,7 @@ test("降级源必须真的降级到 GIF，不能还是同一个视频地址", (
   assert.ok(fallback, "降级源缺失");
   assert.equal(fallback.kind, "gif", "降级源应当是 GIF");
   assert.equal(fallback.mime, "image/gif");
-  assert.ok(fallback.url.startsWith("data:image/gif;base64,"));
+  assert.equal(fallback.url, "pet://pets/cat-idle.gif");
   if (source.kind === "video") {
     assert.notEqual(fallback.url, source.url, "降级源不能还是视频地址，交给 <img> 解不出来");
   }

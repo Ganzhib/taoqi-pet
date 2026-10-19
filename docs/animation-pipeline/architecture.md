@@ -136,11 +136,41 @@ ffmpeg -y -framerate 1000/95 -i <tmpdir>/%04d.png \
 
 **回读校验的坑**：ffmpeg 自带的原生 VP9 解码器**不还原 alpha**，直接 `ffmpeg -i x.webm out.png` 会得到全不透明的图。必须 `-c:v libvpx-vp9` 指定 libvpx 解码器，否则会误判成「alpha 丢了」。
 
-### 5.2 素材地址：暂用 data URL，协议延后
+### 5.2 素材地址：必须走 `pet://` 协议，不能用 data URL
 
-原计划在 M2 注册 `pet://` 自定义协议绕开 asar。**实测后决定延后**：单段 WebM 只有 30–50 KB，base64 后约 40–67 KB，走 `<video src="data:video/webm;base64,...">` 完全够用，而自定义协议要额外处理 scheme 权限、asar 路径和打包目录，风险与收益不成比例。
+**这里我判断错过一次，记下来免得再犯。**
 
-M1 已经把「素材解析」和「渲染方式」拆开了，将来真需要换协议，只改 `artwork-source.js` 一处。
+一开始觉得单段 WebM 只有 30–50 KB，base64 后约 40–67 KB，用 `data:` URL 就够，自定义协议要处理 scheme 权限、asar 路径，风险收益不成比例，于是把协议延后了。
+
+结果 CI 直接红：
+
+```
+error: "4: MEDIA_ELEMENT_ERROR: Media load rejected by URL safety check"
+networkState: 3 (NETWORK_NO_SOURCE)
+```
+
+**Chromium 拒绝从 `data:` URL 加载媒体资源。** 图片没这个限制，视频有。判断时我只在本地 Chrome 上验过 `data:` URL 的 video——而当时那个探针页面本身也是 `data:` URL，恰好绕过了限制；CI 里页面是 `file://`，就暴露了。教训：**验证环境必须和真实运行环境一致**，否则测的是另一套规则。
+
+现在的做法（`src/electron/animation/protocol.js`）：
+
+```js
+// 必须在 app ready 之前调用，且 privileges 里要给 stream
+protocol.registerSchemesAsPrivileged([
+  { scheme: "pet", privileges: {
+    standard: true, secure: true, supportFetchAPI: true,
+    corsEnabled: true, stream: true, bypassCSP: true } },
+]);
+
+protocol.handle("pet", async (request) => { /* 读文件 → Response */ });
+```
+
+三个要点：
+
+1. **必须在 `app.whenReady()` 之前**调 `registerSchemesAsPrivileged`，否则 Chromium 不按标准协议对待它
+2. **`stream: true` 不能省**——媒体播放器要的是连续数据流
+3. **要回 206**：播放器通常带 `Range` 请求，只回 200 可能起不了播。协议里做了简单的字节范围处理
+
+内置素材因此不再需要 base64 编码（省掉了 M1 那层编码缓存的绝大部分收益，缓存现在只对自定义宠物有意义）；自定义宠物仍在 userData 下，保持 data URL。
 
 ### 5.3 降级链
 
