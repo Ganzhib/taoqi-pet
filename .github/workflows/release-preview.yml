@@ -71,7 +71,7 @@ jobs:
       - run: npm test
       - run: npm run build:ui
       - name: Build and upload preview assets
-        run: npx electron-builder --${{ matrix.platform }} --publish always
+        run: npx electron-builder --${{ matrix.platform }} --publish always --config.publish.channel=preview
 
   publish:
     # prepare 必须直接列进 needs：needs.<job>.outputs 只对直接依赖求值

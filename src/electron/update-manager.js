@@ -1,5 +1,10 @@
 const { autoUpdater } = require("electron-updater");
-const { newestRelease } = require("./version-check");
+const {
+  configureUpdaterChannel,
+  isPreviewVersion,
+  newestRelease,
+  updateChannel,
+} = require("./version-check");
 
 const RELEASES_API = "https://api.github.com/repos/Ganzhib/taoqi-pet/releases?per_page=20";
 const RELEASES_PAGE = "https://github.com/Ganzhib/taoqi-pet/releases";
@@ -8,6 +13,9 @@ const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNotice, refreshMenu, beforeInstall }) {
   const canInstall = app.isPackaged && process.platform === "win32" &&
     !process.env.PORTABLE_EXECUTABLE_FILE;
+  const currentVersion = app.getVersion();
+  const currentChannel = updateChannel(currentVersion);
+  const versionKind = isPreviewVersion(currentVersion) ? "预览版" : "正式版";
   let status = { phase: "idle" };
   let manualCheck = false;
   let firstCheckTimer = null;
@@ -64,12 +72,32 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
     shell.openExternal(status.url || RELEASES_PAGE);
   }
 
+  async function findNewestRelease() {
+    const response = await fetch(RELEASES_API, {
+      headers: { Accept: "application/vnd.github+json", "User-Agent": "taoqi-pet-updater" },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error("GitHub releases HTTP " + response.status);
+    const releases = await response.json();
+    if (!Array.isArray(releases)) throw new Error("GitHub releases response is not a list");
+    return newestRelease(releases, currentVersion);
+  }
+
+  async function showUpToDate(manual) {
+    manualCheck = false;
+    setStatus({ phase: "idle" });
+    if (manual) await dialog.showMessageBox({
+      type: "info",
+      title: "已是最新版本",
+      message: "当前已是最新的淘气桌宠" + versionKind + "。",
+      buttons: ["知道了"],
+    });
+  }
+
   if (canInstall) {
     autoUpdater.autoDownload = true;
     autoUpdater.autoInstallOnAppQuit = true;
-    autoUpdater.allowPrerelease = true;
-    autoUpdater.allowDowngrade = false;
-    autoUpdater.channel = "preview";
+    configureUpdaterChannel(autoUpdater, currentChannel);
 
     autoUpdater.on("update-available", (info) => {
       const wasManual = manualCheck;
@@ -97,14 +125,7 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
     });
     autoUpdater.on("update-not-available", () => {
       const wasManual = manualCheck;
-      manualCheck = false;
-      setStatus({ phase: "idle" });
-      if (wasManual) dialog.showMessageBox({
-        type: "info",
-        title: "已是最新版本",
-        message: "当前已是最新的淘气桌宠预览版。",
-        buttons: ["知道了"],
-      });
+      showUpToDate(wasManual);
     });
     autoUpdater.on("error", showUpdateError);
   }
@@ -135,6 +156,14 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
     setStatus({ phase: "checking" });
     if (canInstall) {
       try {
+        if (currentChannel === "preview") {
+          const release = await findNewestRelease();
+          if (!release) {
+            await showUpToDate(manual);
+            return;
+          }
+          configureUpdaterChannel(autoUpdater, updateChannel(release.version));
+        }
         await autoUpdater.checkForUpdates();
       } catch (error) {
         if (status.phase !== "error") await showUpdateError(error);
@@ -143,14 +172,7 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
     }
 
     try {
-      const response = await fetch(RELEASES_API, {
-        headers: { Accept: "application/vnd.github+json", "User-Agent": "taoqi-pet-updater" },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!response.ok) throw new Error("GitHub releases HTTP " + response.status);
-      const releases = await response.json();
-      if (!Array.isArray(releases)) throw new Error("GitHub releases response is not a list");
-      const release = newestRelease(releases, app.getVersion());
+      const release = await findNewestRelease();
       manualCheck = false;
       if (release) {
         setStatus({ phase: "available", ...release });
@@ -167,13 +189,7 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
           cancelId: 0,
         }).then(({ response: choice }) => { if (choice === 1) openRelease(); });
       } else {
-        setStatus({ phase: "idle" });
-        if (manual) await dialog.showMessageBox({
-          type: "info",
-          title: "已是最新版本",
-          message: "当前已是最新的淘气桌宠预览版。",
-          buttons: ["知道了"],
-        });
+        await showUpToDate(manual);
       }
     } catch (error) {
       await showUpdateError(error);

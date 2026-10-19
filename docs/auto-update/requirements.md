@@ -10,6 +10,7 @@
 2. Windows 安装版发现新版后在后台下载。完成时显示系统通知与宠物提示，并在菜单显示“重启安装”。用户可立即重启，也可稍后退出时安装。
 3. Windows 便携版和当前未签名的 macOS 预览版发现新版后显示通知与下载入口，用户从官方 Release 获取对应安装包。
 4. 安静模式下不主动弹出系统通知或宠物提示；手动检查仍返回明确结果。断网时自动检查静默失败，手动检查显示失败原因的简短提示。
+5. 正式版只接收后续正式版，不能自动升级到 preview 预览版；预览版继续接收后续预览版，并可在正式版发布后升级到正式版。
 
 ## 平台范围
 
@@ -26,6 +27,7 @@ Electron 和 electron-builder 均要求 macOS 应用签名后才能自动安装�
 
 - 首个内置更新器的版本为 v0.3.0-preview.2。此前已安装的 preview.1 没有更新器，需要手动升级一次。
 - 发布工作流同时上传 Windows/macOS 安装包、ZIP 与更新清单；清单和安装包必须来自同一次构建，Release 在文件齐备后才公开。工作流分两条：`.github/workflows/release.yml` 发布正式版（不带 prerelease 标记），`.github/workflows/release-preview.yml` 发布预览版，两者都手动触发。
-- 更新清单沿用 electron-builder 的 preview 通道（`preview.yml` / `preview-mac.yml`），正式版也保持该通道，桌面端的版本提醒与 Windows 原地更新行为不变。
-- 版本检查只接受本项目格式 `v主.次.修-preview.序号` 或正式版；忽略草稿和无效标签。
+- 正式版使用 `latest.yml` / `latest-mac.yml`，预览版使用 `preview.yml` / `preview-mac.yml`，两种发布不能覆盖对方的清单。预览版客户端检查公开 Release 后，按候选版本临时选择 preview 或 latest 渠道，因此既能接收后续预览版，也能转入正式版。
+- 版本检查只接受本项目格式 `v主.次.修-preview.序号` 或正式版；忽略草稿和无效标签。正式版客户端同时忽略 GitHub 标记为 prerelease 的 Release 和带 `-preview` 后缀的版本，避免发布元数据配置错误时串入预览渠道。
+- v0.3.1 是首个隔离正式/预览渠道的版本。此前的正式安装版已固定到 preview 渠道，无法通过原有更新器安全切换到 latest，需要手动安装一次 v0.3.1 或之后的正式版。
 - `npm run check`、`npm test`、Electron smoke 与 GitHub Actions 构建通过后，才视为代码和打包验收。Windows 从旧安装版到下一版的真实原地更新，仍需在 Windows 设备上单独验收。

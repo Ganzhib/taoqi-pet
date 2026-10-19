@@ -18,9 +18,26 @@ function compareParsedVersions(left, right) {
   return 0;
 }
 
+function isPreviewVersion(version) {
+  if (!parseVersion(version)) throw new Error("应用版本号不符合发布约定。");
+  return version.includes("-preview.");
+}
+
+function updateChannel(version) {
+  return isPreviewVersion(version) ? "preview" : "latest";
+}
+
+function configureUpdaterChannel(updater, channel) {
+  updater.channel = channel;
+  updater.allowPrerelease = channel === "preview";
+  // electron-updater 会在设置 channel 时重新允许降级，必须在它之后关闭。
+  updater.allowDowngrade = false;
+}
+
 function newestRelease(releases, currentVersion) {
   const current = parseVersion(currentVersion);
   if (!current) throw new Error("应用版本号不符合发布约定。");
+  const acceptsPreview = isPreviewVersion(currentVersion);
 
   let selected = null;
   for (const release of releases) {
@@ -28,7 +45,9 @@ function newestRelease(releases, currentVersion) {
     const match = /^v(.+)$/.exec(release.tag_name);
     if (!match) continue;
     const parsed = parseVersion(match[1]);
-    if (!parsed || compareParsedVersions(parsed, current) <= 0) continue;
+    if (!parsed) continue;
+    if (!acceptsPreview && (release.prerelease || isPreviewVersion(match[1]))) continue;
+    if (compareParsedVersions(parsed, current) <= 0) continue;
     if (!selected || compareParsedVersions(parsed, selected.parsed) > 0) {
       selected = {
         parsed,
@@ -40,4 +59,10 @@ function newestRelease(releases, currentVersion) {
   return selected && { version: selected.version, url: selected.url };
 }
 
-module.exports = { newestRelease, parseVersion };
+module.exports = {
+  configureUpdaterChannel,
+  isPreviewVersion,
+  newestRelease,
+  parseVersion,
+  updateChannel,
+};
