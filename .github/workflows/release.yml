@@ -79,11 +79,14 @@ jobs:
         run: npx electron-builder --${{ matrix.platform }} --publish always
 
   publish:
-    needs: package
+    # prepare 必须直接列进 needs：GitHub Actions 的 needs.<job>.outputs
+    # 只对直接依赖求值，写成 [package] 会被解析成空字符串
+    needs: [prepare, package]
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
+      - uses: actions/checkout@v4
       - name: Verify update manifests and publish release
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
