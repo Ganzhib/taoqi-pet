@@ -14,6 +14,7 @@ const CHARACTERS = [
   { id: "dragon-idle", name: "泡泡龙", category: "沙雕日常", description: "喷的不是火，是可爱的泡泡。" },
   { id: "bunny-idle", name: "蹦蹦兔", category: "沙雕日常", description: "耳朵先答话，腿脚跟不上。" },
   { id: "blob-idle", name: "云朵团子", category: "沙雕日常", description: "软到没有骨头，只剩好脾气。" },
+  { id: "penguin-idle", name: "企鹅", category: "沙雕日常", description: "自带羽绒服，还是觉得冷。" },
 ];
 
 const DECORATIONS = [
