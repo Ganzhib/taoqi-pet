@@ -70,8 +70,9 @@ function petsRoot() {
   return path.join(__dirname, "../../../assets/pets");
 }
 
-function resolveBuiltInSource(character) {
+function resolveBuiltInSource(character, skipVideo = false) {
   for (const format of BUILT_IN_FORMATS) {
+    if (skipVideo && format.kind === "video") continue;
     const file = path.join(petsRoot(), character.id + "." + format.extension);
     if (!fs.existsSync(file)) continue;
     const url = encodeFile(file, format.mime);
@@ -120,9 +121,23 @@ function resolveArtworkSource(id, options = {}) {
   return null;
 }
 
+// 降级源：显式排掉 video 分支。
+//
+// 视频解码失败时不能直接复用 resolveArtworkSource——它同样优先 webm，
+// 拿回来的还是同一个视频地址，交给 <img> 永远解不出来（naturalWidth 恒为 0）。
+// 降级必须真的降级到动图。
+function resolveFallbackSource(id, options = {}) {
+  if (typeof id !== "string" || id.length === 0) return null;
+  const characters = Array.isArray(options.characters) ? options.characters : [];
+  const character = characters.find((pet) => pet.id === id);
+  if (character) return resolveBuiltInSource(character, true);
+  // 自定义宠物本来就是静态图/动图，不存在视频分支，原样返回
+  return resolveArtworkSource(id, options);
+}
+
 // 缓存条目数，供测试与诊断使用
 function cachedEntryCount() {
   return encodedCache.size;
 }
 
-module.exports = { PIPELINE, resolveArtworkSource, cachedEntryCount };
+module.exports = { PIPELINE, resolveArtworkSource, resolveFallbackSource, cachedEntryCount };

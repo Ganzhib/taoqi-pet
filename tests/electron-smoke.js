@@ -39,6 +39,51 @@ async function waitForArtwork(page, label) {
   });
 }
 
+// 拿一份 WebM 主源单独试播，把解码结果和角落 alpha 读回来。
+// 桌宠元素一旦降级成 <img> 就再也读不到视频状态了，只能另起一个 video 探测。
+async function probeWebm(page) {
+  return await page.evaluate(async () => {
+    let source;
+    try {
+      source = await window.taoqiPet.getArtworkSource("cat-idle");
+    } catch (error) {
+      return { note: "取主源失败: " + error.message };
+    }
+    if (!source || source.kind !== "video") {
+      return { note: "主源不是视频", kind: source && source.kind };
+    }
+    const video = document.createElement("video");
+    video.muted = true;
+    video.autoplay = true;
+    video.preload = "auto";
+    video.src = source.url;
+    document.body.appendChild(video);
+    await new Promise((resolve) => {
+      video.onerror = resolve;
+      video.onloadeddata = resolve;
+      setTimeout(resolve, 8000);
+    });
+    let cornerAlpha = null;
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 280;
+      canvas.height = 320;
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0);
+      cornerAlpha = context.getImageData(2, 2, 1, 1).data[3];
+    } catch (error) {
+      cornerAlpha = "draw-failed:" + error.message;
+    }
+    return {
+      readyState: video.readyState,
+      networkState: video.networkState,
+      videoWidth: video.videoWidth,
+      error: video.error ? video.error.code + ":" + video.error.message : null,
+      cornerAlpha,
+    };
+  });
+}
+
 async function run() {
   const application = await electron.launch({
     args: ["."],
@@ -75,9 +120,12 @@ async function run() {
       .getByRole("button", { name: "选它陪伴" }).click();
     await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-study");
     await waitForArtwork(pet, "切换后的桌宠素材");
-    assert.equal(await pet.evaluate(() =>
-      document.getElementById("pet-art") instanceof HTMLVideoElement), true,
-    "内置宠物应当播放透明 WebM，而不是回退到 GIF");
+    const isVideo = await pet.evaluate(() =>
+      document.getElementById("pet-art") instanceof HTMLVideoElement);
+    if (!isVideo) {
+      assert.fail("内置宠物应当播放透明 WebM，却回退到了图片。视频试播结果: "
+        + JSON.stringify(await probeWebm(pet)));
+    }
     assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("data:video/webm"));
     await market.screenshot({ path: "artifacts/market.png" });
     await pet.screenshot({ path: "artifacts/pet.png" });

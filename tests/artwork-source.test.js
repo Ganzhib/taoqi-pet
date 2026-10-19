@@ -7,6 +7,7 @@ const path = require("node:path");
 const {
   PIPELINE,
   resolveArtworkSource,
+  resolveFallbackSource,
   cachedEntryCount,
 } = require("../src/electron/animation/artwork-source");
 const { CHARACTERS } = require("../src/electron/pet-core");
@@ -105,4 +106,22 @@ test("重复解析复用编码缓存，不再重复读盘", () => {
   } finally {
     fs.readFileSync = original;
   }
+});
+
+test("降级源必须真的降级到 GIF，不能还是同一个视频地址", () => {
+  const context = contextWith([], {});
+  const source = resolveArtworkSource("cat-idle", context);
+  const fallback = resolveFallbackSource("cat-idle", context);
+  assert.ok(source, "主源缺失");
+  assert.ok(fallback, "降级源缺失");
+  assert.equal(fallback.kind, "gif", "降级源应当是 GIF");
+  assert.equal(fallback.mime, "image/gif");
+  assert.ok(fallback.url.startsWith("data:image/gif;base64,"));
+  if (source.kind === "video") {
+    assert.notEqual(fallback.url, source.url, "降级源不能还是视频地址，交给 <img> 解不出来");
+  }
+});
+
+test("降级源对未知 id 同样返回 null", () => {
+  assert.equal(resolveFallbackSource("不存在", contextWith([], {})), null);
 });

@@ -59,6 +59,8 @@ interface PetBridge {
   getState(): Promise<PetState>;
   getArtwork(id: string): Promise<string | null>;
   getArtworkSource(id: string): Promise<ArtworkSource | null>;
+  // 视频解码失败时的降级素材（跳过 webm 的 GIF）
+  getFallbackArtwork(id: string): Promise<string | null>;
   showMenu(): void;
   openMarket(): void;
   openHome(): void;
