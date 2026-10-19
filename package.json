@@ -1,6 +1,6 @@
 {
   "name": "taoqi-pet",
-  "version": "0.3.0-preview.3",
+  "version": "0.3.0",
   "description": "A free desktop pet and companion.",
   "private": true,
   "license": "MIT",
