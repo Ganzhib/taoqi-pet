@@ -37,7 +37,7 @@ async function run() {
     market.on("pageerror", (error) => pageErrors.push("market: " + error.message));
     await market.locator(".pet-card").first().waitFor();
     assert.equal(await market.title(), "淘气宠物市场");
-    assert.equal(await market.locator(".pet-card").count(), 8);
+    assert.equal(await market.locator(".pet-card").count(), 13);
 
     await market.locator('[data-category="学习中"]').click();
     assert.equal(await market.locator(".pet-card").count(), 1);
