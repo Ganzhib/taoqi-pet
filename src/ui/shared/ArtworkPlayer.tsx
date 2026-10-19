@@ -24,24 +24,26 @@ export function ArtworkPlayer({
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const [fallback, setFallback] = useState<string | null>(null);
 
-  const useVideo = source !== null && source.kind === "video" && failedUrl !== source.url;
-
-  if (useVideo) {
+  if (source !== null && source.kind === "video" && failedUrl !== source.url) {
+    const current = source;
     return (
       <video
         id="pet-art"
         key={playKey}
         className={className}
-        src={source.url}
+        src={current.url}
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
         onError={() => {
-          setFailedUrl(source.url);
-          loadFallback?.(source.id).then((url) => {
-            if (url) setFallback(url);
-          });
+          setFailedUrl(current.url);
+          if (loadFallback) {
+            loadFallback(current.id).then((url) => {
+              if (url) setFallback(url);
+            });
+          }
         }}
       />
     );

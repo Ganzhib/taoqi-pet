@@ -6,6 +6,39 @@ const { _electron: electron } = require("playwright");
 
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "taoqi-smoke-"));
 
+// 等桌宠素材真正可显示：视频要求解出首帧，图片要求解码完成。
+// 失败时把播放器的内部状态一起抛出来，否则 CI 只能看到一句 timeout。
+async function waitForArtwork(page, label) {
+  await page.waitForFunction(() => {
+    const element = document.getElementById("pet-art");
+    if (element instanceof HTMLVideoElement) {
+      return element.readyState >= 2 && element.videoWidth > 0 && element.error === null;
+    }
+    return element.complete && element.naturalWidth > 0;
+  }, undefined, { polling: 200, timeout: 20000 }).catch(async (error) => {
+    const state = await page.evaluate(() => {
+      const element = document.getElementById("pet-art");
+      if (element instanceof HTMLVideoElement) {
+        return {
+          kind: "video",
+          readyState: element.readyState,
+          networkState: element.networkState,
+          videoWidth: element.videoWidth,
+          error: element.error ? element.error.code + ":" + element.error.message : null,
+          src: element.src.slice(0, 24),
+        };
+      }
+      return {
+        kind: "img",
+        complete: element.complete,
+        naturalWidth: element.naturalWidth,
+        src: String(element.getAttribute("src")).slice(0, 24),
+      };
+    });
+    throw new Error(label + " 未就绪 " + JSON.stringify(state) + " | " + error.message);
+  });
+}
+
 async function run() {
   const application = await electron.launch({
     args: ["."],
@@ -19,11 +52,7 @@ async function run() {
     const pet = await application.firstWindow();
     pet.on("pageerror", (error) => pageErrors.push("pet: " + error.message));
     await pet.locator("#pet-art").waitFor();
-    await pet.waitForFunction(() => {
-      const element = document.getElementById("pet-art");
-      if (element instanceof HTMLVideoElement) return element.readyState >= 2;
-      return element.complete && element.naturalWidth > 0;
-    });
+    await waitForArtwork(pet, "首屏桌宠素材");
 
     assert.equal(await pet.title(), "淘气桌宠");
     assert.equal(await application.evaluate(({ BrowserWindow }) =>
@@ -45,11 +74,7 @@ async function run() {
     await market.locator(".pet-card").filter({ hasText: "冲刺猫" })
       .getByRole("button", { name: "选它陪伴" }).click();
     await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-study");
-    await pet.waitForFunction(() => {
-      const element = document.getElementById("pet-art");
-      if (element instanceof HTMLVideoElement) return element.readyState >= 2;
-      return element.naturalWidth > 0;
-    });
+    await waitForArtwork(pet, "切换后的桌宠素材");
     assert.equal(await pet.evaluate(() =>
       document.getElementById("pet-art") instanceof HTMLVideoElement), true,
     "内置宠物应当播放透明 WebM，而不是回退到 GIF");
