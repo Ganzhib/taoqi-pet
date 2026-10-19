@@ -116,13 +116,25 @@ function keepPetVisible() {
   }
 }
 
+// 桌面层是 macOS 独有的概念，「点击墙纸显示桌面」也是 macOS 特有的行为。
+function isDesktopLevel() {
+  return settings.desktopLevel && process.platform === "darwin";
+}
+
 // 桌面层模式必须放弃置顶：置顶会把窗口抬离桌面层，
 // 而「点击墙纸不被推走」的豁免正是桌面层独有的，两者不能兼得。
 function petShouldFloat() {
-  return settings.alwaysOnTop && !settings.desktopLevel;
+  return settings.alwaysOnTop && !isDesktopLevel();
 }
 
 function applyPetWindowLevel() {
+  if (isDesktopLevel()) {
+    // 不能调用 setAlwaysOnTop：即便传 false 也会把窗口层级重置成 normal，
+    // 桌面层的豁免权当场失效（实测踩过）。setVisibleOnAllWorkspaces 实测无碍，
+    // 保留它可以继续跨 Space 可见。
+    petWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    return;
+  }
   const float = petShouldFloat();
   petWindow.setAlwaysOnTop(float, float ? "screen-saver" : "normal");
   if (process.platform === "darwin") {
@@ -509,17 +521,7 @@ function menuTemplate() {
       click: (item) => updateSettings({ roaming: !item.checked }) },
     { label: isFocusActive() ? "结束专注（剩余 " + focusMinutes + " 分钟）" : "开始 25 分钟专注",
       click: toggleFocus },
-    { label: "窗口层级", submenu: [
-      { label: "总在最前", type: "radio",
-        checked: settings.alwaysOnTop && !settings.desktopLevel,
-        click: () => updateSettings({ desktopLevel: false, alwaysOnTop: true }) },
-      { label: "普通窗口", type: "radio",
-        checked: !settings.alwaysOnTop && !settings.desktopLevel,
-        click: () => updateSettings({ desktopLevel: false, alwaysOnTop: false }) },
-      { label: "桌面层（点桌面不会被推走）", type: "radio",
-        checked: settings.desktopLevel,
-        click: () => updateSettings({ desktopLevel: true }) },
-    ] },
+    { label: "窗口层级", submenu: windowLevelItems() },
     { label: "大小", submenu: [1, 1.25, 1.5].map((scale) => ({
       label: Math.round(scale * 100) + "%",
       type: "radio",
@@ -544,6 +546,23 @@ function menuTemplate() {
     { label: "使用帮助", click: showHelp },
     { label: "退出", click: () => app.quit() },
   );
+  return items;
+}
+
+function windowLevelItems() {
+  const items = [
+    { label: "总在最前", type: "radio",
+      checked: settings.alwaysOnTop && !isDesktopLevel(),
+      click: () => updateSettings({ desktopLevel: false, alwaysOnTop: true }) },
+    { label: "普通窗口", type: "radio",
+      checked: !settings.alwaysOnTop && !isDesktopLevel(),
+      click: () => updateSettings({ desktopLevel: false, alwaysOnTop: false }) },
+  ];
+  if (process.platform === "darwin") {
+    items.push({ label: "桌面层（点桌面不会被推走）", type: "radio",
+      checked: isDesktopLevel(),
+      click: () => updateSettings({ desktopLevel: true }) });
+  }
   return items;
 }
 
@@ -607,7 +626,7 @@ function createPetWindow() {
     show: false,
     alwaysOnTop: petShouldFloat(),
     // 桌面层窗口不会被「点击墙纸显示桌面」推走，但代价是永远在应用窗口之下
-    ...(settings.desktopLevel ? { type: "desktop" } : {}),
+    ...(isDesktopLevel() ? { type: "desktop" } : {}),
     backgroundColor: "#00000000",
     icon: ICON_PATH,
     webPreferences: {
