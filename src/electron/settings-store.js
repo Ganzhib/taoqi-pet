@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
   roaming: true,
   quietMode: false,
   alwaysOnTop: true,
+  desktopLevel: false,
   scale: 1,
   characterId: "cat-idle",
   decorationId: "none",
@@ -39,6 +40,7 @@ function readSettings() {
       roaming: saved.roaming !== false,
       quietMode: saved.quietMode === true,
       alwaysOnTop: saved.alwaysOnTop !== false,
+      desktopLevel: saved.desktopLevel === true,
       scale: [1, 1.25, 1.5].includes(saved.scale) ? saved.scale : 1,
       characterId: [...CHARACTERS, ...customPets].some((character) => character.id === saved.characterId)
         ? saved.characterId : DEFAULT_SETTINGS.characterId,

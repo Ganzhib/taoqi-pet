@@ -116,20 +116,30 @@ function keepPetVisible() {
   }
 }
 
+// 桌面层模式必须放弃置顶：置顶会把窗口抬离桌面层，
+// 而「点击墙纸不被推走」的豁免正是桌面层独有的，两者不能兼得。
+function petShouldFloat() {
+  return settings.alwaysOnTop && !settings.desktopLevel;
+}
+
 function applyPetWindowLevel() {
-  petWindow.setAlwaysOnTop(settings.alwaysOnTop, settings.alwaysOnTop ? "screen-saver" : "normal");
+  const float = petShouldFloat();
+  petWindow.setAlwaysOnTop(float, float ? "screen-saver" : "normal");
   if (process.platform === "darwin") {
     // Fullscreen apps live in separate Spaces; normal always-on-top alone cannot cross them.
-    petWindow.setVisibleOnAllWorkspaces(settings.alwaysOnTop, {
-      visibleOnFullScreen: settings.alwaysOnTop,
+    petWindow.setVisibleOnAllWorkspaces(float, {
+      visibleOnFullScreen: float,
     });
   }
 }
 
 function updateSettings(patch) {
+  const previousDesktopLevel = settings.desktopLevel;
   settings = { ...settings, ...patch };
   saveSettings(settings);
-  if ("alwaysOnTop" in patch) applyPetWindowLevel();
+  // 窗口的 type 只在创建时生效，切换层级模式只能重建窗口
+  if (settings.desktopLevel !== previousDesktopLevel) recreatePetWindow();
+  else if ("alwaysOnTop" in patch) applyPetWindowLevel();
   if ("scale" in patch) {
     petWindow.setBounds({ ...petWindow.getBounds(), ...windowSize() });
     keepPetVisible();
@@ -427,7 +437,7 @@ function showPet() {
   hiddenByUser = false;
   keepPetVisible();
   petWindow.showInactive();
-  if (settings.alwaysOnTop) petWindow.moveTop();
+  if (petShouldFloat()) petWindow.moveTop();
   scheduleWalk();
   updateTrayMenu();
 }
@@ -499,8 +509,17 @@ function menuTemplate() {
       click: (item) => updateSettings({ roaming: !item.checked }) },
     { label: isFocusActive() ? "结束专注（剩余 " + focusMinutes + " 分钟）" : "开始 25 分钟专注",
       click: toggleFocus },
-    { label: "总在最前", type: "checkbox", checked: settings.alwaysOnTop,
-      click: (item) => updateSettings({ alwaysOnTop: item.checked }) },
+    { label: "窗口层级", submenu: [
+      { label: "总在最前", type: "radio",
+        checked: settings.alwaysOnTop && !settings.desktopLevel,
+        click: () => updateSettings({ desktopLevel: false, alwaysOnTop: true }) },
+      { label: "普通窗口", type: "radio",
+        checked: !settings.alwaysOnTop && !settings.desktopLevel,
+        click: () => updateSettings({ desktopLevel: false, alwaysOnTop: false }) },
+      { label: "桌面层（点桌面不会被推走）", type: "radio",
+        checked: settings.desktopLevel,
+        click: () => updateSettings({ desktopLevel: true }) },
+    ] },
     { label: "大小", submenu: [1, 1.25, 1.5].map((scale) => ({
       label: Math.round(scale * 100) + "%",
       type: "radio",
@@ -586,7 +605,9 @@ function createPetWindow() {
     transparent: true,
     resizable: false,
     show: false,
-    alwaysOnTop: settings.alwaysOnTop,
+    alwaysOnTop: petShouldFloat(),
+    // 桌面层窗口不会被「点击墙纸显示桌面」推走，但代价是永远在应用窗口之下
+    ...(settings.desktopLevel ? { type: "desktop" } : {}),
     backgroundColor: "#00000000",
     icon: ICON_PATH,
     webPreferences: {
@@ -596,6 +617,7 @@ function createPetWindow() {
       sandbox: true,
     },
   });
+  const self = petWindow;
   applyPetWindowLevel();
   petWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   petWindow.loadFile(path.join(__dirname, "../../dist-ui/index.html"));
@@ -617,11 +639,26 @@ function createPetWindow() {
     persistPosition();
   });
   petWindow.on("closed", () => {
+    // 已经被新窗口取代时不要再动全局状态，否则会清掉新窗口的计时器
+    if (petWindow !== self) return;
     clearTimeout(walkTimeout);
     clearInterval(visibilityGuard);
     stopWalk();
     petWindow = null;
   });
+}
+
+// 重建桌宠窗口。窗口的 type 只在创建时生效，切换层级模式只能走这条路。
+// 先建新窗口再销毁旧的：中间不会出现零窗口，避免触发 window-all-closed 退出。
+function recreatePetWindow() {
+  const old = petWindow;
+  petReady = false;
+  dragOrigin = null;
+  clearTimeout(walkTimeout);
+  clearInterval(visibilityGuard);
+  stopWalk();
+  createPetWindow();
+  if (old && !old.isDestroyed()) old.destroy();
 }
 
 function createTray() {
