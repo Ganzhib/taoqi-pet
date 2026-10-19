@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 
-type ArtworkLoader = (id: string) => Promise<string | null>;
+type ArtworkLoader<T> = (id: string) => Promise<T | null>;
 
-export function useArtwork(characterId: string | null, loadArtwork: ArtworkLoader) {
-  const [artwork, setArtwork] = useState<string | null>(null);
+// 加载桌宠素材。T 可以是 data URL 字符串，也可以是 ArtworkSource 描述。
+export function useArtwork<T>(characterId: string | null, loadArtwork: ArtworkLoader<T>) {
+  const [artwork, setArtwork] = useState<T | null>(null);
 
   useEffect(() => {
     if (characterId === null) return;

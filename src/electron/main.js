@@ -2,11 +2,12 @@ const { app, BrowserWindow, Menu, Notification, Tray, dialog, ipcMain, nativeIma
 const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const path = require("node:path");
-const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, HOME_THEMES, HOME_FURNITURE, detectImageType, clampToWorkArea } = require("./pet-core");
+const { TOOLBOX_URL, CHARACTERS, DECORATIONS, HOME_THEMES, HOME_FURNITURE, detectImageType, clampToWorkArea } = require("./pet-core");
 
 const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSettings } = require("./settings-store");
 const { renderPetSvg } = require("./character-generator");
 const { cutoutStaticImage } = require("./cutout");
+const { resolveArtworkSource } = require("./animation/artwork-source");
 const { createUpdateManager } = require("./update-manager");
 
 const BASE_SIZE = { width: 240, height: 280 };
@@ -188,20 +189,17 @@ function notifyMarket() {
   }
 }
 
+function getArtworkSource(id) {
+  return resolveArtworkSource(id, {
+    characters: CHARACTERS,
+    customPets: settings.customPets,
+    customPath: customPetPath,
+  });
+}
+
 function getArtwork(id) {
-  const builtIn = CHARACTERS.find((pet) => pet.id === id);
-  const custom = settings.customPets.find((pet) => pet.id === id);
-  if (!builtIn && !custom) return null;
-  const file = builtIn
-    ? path.join(__dirname, "../../assets/pets", builtIn.id + ".gif")
-    : customPetPath(custom);
-  const mime = builtIn ? "image/gif" : custom.kind === "generated" ? "image/svg+xml"
-    : IMAGE_TYPES.find((type) => type.extension === custom.extension).mime;
-  try {
-    return "data:" + mime + ";base64," + fs.readFileSync(file).toString("base64");
-  } catch {
-    return null;
-  }
+  const source = getArtworkSource(id);
+  return source ? source.url : null;
 }
 
 function selectCharacter(id) {
@@ -613,6 +611,7 @@ if (!app.requestSingleInstanceLock()) {
     });
     ipcMain.handle("pet:get-state", () => ({ ...settings, focusActive: isFocusActive() }));
     ipcMain.handle("pet:get-artwork", (_event, id) => getArtwork(id));
+    ipcMain.handle("pet:get-artwork-source", (_event, id) => getArtworkSource(id));
     ipcMain.handle("market:get-catalog", getCatalog);
     ipcMain.handle("market:select", (_event, id) => selectCharacter(id));
     ipcMain.handle("market:artwork", (_event, id) => getArtwork(id));

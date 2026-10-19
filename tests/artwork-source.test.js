@@ -1,0 +1,108 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+
+const {
+  PIPELINE,
+  resolveArtworkSource,
+  cachedEntryCount,
+} = require("../src/electron/animation/artwork-source");
+const { CHARACTERS } = require("../src/electron/pet-core");
+
+const PNG_BYTES = Buffer.from("89504e470d0a1a0a", "hex");
+
+function contextWith(customPets, files) {
+  return {
+    characters: CHARACTERS,
+    customPets,
+    customPath: (pet) => files[pet.id],
+  };
+}
+
+test("内置角色全部解析为本地 gif 素材", () => {
+  for (const character of CHARACTERS) {
+    const source = resolveArtworkSource(character.id, contextWith([], {}));
+    assert.ok(source, character.name + " 缺少素材");
+    assert.equal(source.kind, "gif", character.name);
+    assert.equal(source.mime, "image/gif", character.name);
+    assert.equal(source.id, character.id);
+    assert.ok(source.url.startsWith("data:image/gif;base64,"), character.name + " 未编码为 data URL");
+  }
+});
+
+test("内置角色带管线约定的帧参数", () => {
+  const source = resolveArtworkSource("cat-idle", contextWith([], {}));
+  assert.equal(source.frameCount, PIPELINE.frameCount);
+  assert.equal(source.frameDelayMs, PIPELINE.frameDelayMs);
+});
+
+test("未注册角色返回 null", () => {
+  assert.equal(resolveArtworkSource("not-a-pet", contextWith([], {})), null);
+});
+
+test("非法入参返回 null 而不是抛错", () => {
+  const context = contextWith([], {});
+  assert.equal(resolveArtworkSource("", context), null);
+  assert.equal(resolveArtworkSource(null, context), null);
+  assert.equal(resolveArtworkSource(undefined, context), null);
+  assert.equal(resolveArtworkSource(42, context), null);
+  assert.equal(resolveArtworkSource("../etc/passwd", context), null);
+});
+
+test("自定义宠物按扩展名映射 mime 与 kind", () => {
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "taoqi-artwork-")), "pet.png");
+  fs.writeFileSync(file, PNG_BYTES);
+  const custom = { id: "custom-12345678-1234-1234-1234-123456789abc", name: "我的宠物", extension: "png" };
+  const source = resolveArtworkSource(custom.id, contextWith([custom], { [custom.id]: file }));
+  assert.ok(source);
+  assert.equal(source.mime, "image/png");
+  assert.equal(source.kind, "image");
+  assert.equal(source.frameCount, null);
+  assert.equal(source.frameDelayMs, null);
+});
+
+test("自定义 gif 走 gif 分支", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "taoqi-artwork-"));
+  const file = path.join(dir, "pet.gif");
+  fs.writeFileSync(file, Buffer.from("GIF89a", "ascii"));
+  const custom = { id: "custom-12345678-1234-1234-1234-123456789abc", name: "动图", extension: "gif" };
+  const source = resolveArtworkSource(custom.id, contextWith([custom], { [custom.id]: file }));
+  assert.equal(source.kind, "gif");
+  assert.equal(source.mime, "image/gif");
+});
+
+test("svg 素材只在捏宠产物（kind=generated）时才被接受", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "taoqi-artwork-"));
+  const file = path.join(dir, "pet.svg");
+  fs.writeFileSync(file, "<svg></svg>");
+  const id = "custom-12345678-1234-1234-1234-123456789abc";
+  assert.equal(resolveArtworkSource(id, contextWith([{ id, name: "外部", extension: "svg" }], { [id]: file })), null);
+  assert.ok(resolveArtworkSource(id, contextWith([{ id, name: "捏的", extension: "svg", kind: "generated" }], { [id]: file })));
+});
+
+test("素材文件缺失时返回 null", () => {
+  const custom = { id: "custom-12345678-1234-1234-1234-123456789abc", name: "没了", extension: "png" };
+  assert.equal(
+    resolveArtworkSource(custom.id, contextWith([custom], { [custom.id]: "/definitely/not/here.png" })),
+    null,
+  );
+});
+
+test("重复解析复用编码缓存，不再重复读盘", () => {
+  const original = fs.readFileSync;
+  let reads = 0;
+  fs.readFileSync = (...args) => { reads += 1; return original(...args); };
+  try {
+    const first = resolveArtworkSource("cat-idle", contextWith([], {}));
+    const afterFirst = reads;
+    const cached = cachedEntryCount();
+    const second = resolveArtworkSource("cat-idle", contextWith([], {}));
+    assert.equal(reads, afterFirst, "命中缓存时不应再次读盘");
+    assert.equal(cachedEntryCount(), cached, "命中缓存不应新增条目");
+    assert.equal(first.url, second.url);
+  } finally {
+    fs.readFileSync = original;
+  }
+});

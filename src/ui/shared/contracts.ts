@@ -32,6 +32,20 @@ export interface PetCatalog {
   pets: CatalogPet[];
 }
 
+export type ArtworkKind = "gif" | "video" | "image";
+
+// 素材描述。渲染层只按 kind 选渲染方式，不关心文件后缀，
+// 这样换素材格式时渲染代码不用跟着改。
+export interface ArtworkSource {
+  id: string;
+  kind: ArtworkKind;
+  mime: string;
+  url: string;
+  // 内置动画才有（管线约定值）；自定义图片为 null
+  frameCount: number | null;
+  frameDelayMs: number | null;
+}
+
 export interface HomeState {
   characterId: string;
   characterName: string;
@@ -44,6 +58,7 @@ export interface HomeState {
 interface PetBridge {
   getState(): Promise<PetState>;
   getArtwork(id: string): Promise<string | null>;
+  getArtworkSource(id: string): Promise<ArtworkSource | null>;
   showMenu(): void;
   openMarket(): void;
   openHome(): void;

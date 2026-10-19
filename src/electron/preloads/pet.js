@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("taoqiPet", {
   getState: () => ipcRenderer.invoke("pet:get-state"),
   getArtwork: (id) => ipcRenderer.invoke("pet:get-artwork", id),
+  getArtworkSource: (id) => ipcRenderer.invoke("pet:get-artwork-source", id),
   showMenu: () => ipcRenderer.send("pet:show-menu"),
   openMarket: () => ipcRenderer.send("pet:open-market"),
   openHome: () => ipcRenderer.send("pet:open-home"),

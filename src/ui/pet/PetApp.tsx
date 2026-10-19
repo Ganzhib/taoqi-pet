@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import type { PetReaction, PetState } from "../shared/contracts";
 import { useArtwork } from "../shared/useArtwork";
+import { ArtworkPlayer } from "../shared/ArtworkPlayer";
 import { reactionMessage } from "./reactions";
 import "./pet.css";
 
@@ -22,7 +23,7 @@ export function PetApp() {
   const [hintHidden, setHintHidden] = useState(false);
   const [idleCycle, setIdleCycle] = useState(0);
   const [visible, setVisible] = useState(!document.hidden);
-  const artwork = useArtwork(state?.characterId ?? null, window.taoqiPet.getArtwork);
+  const artwork = useArtwork(state?.characterId ?? null, window.taoqiPet.getArtworkSource);
 
   const characterId = useRef("caramel");
   const quietMode = useRef(false);
@@ -190,8 +191,7 @@ export function PetApp() {
         onPointerUp={finishPointer} onPointerCancel={finishPointer}
         onContextMenu={(event) => { event.preventDefault(); window.taoqiPet.showMenu(); }}
         onKeyDown={onKeyDown}>
-        <img id="pet-art" className="pet-art" key={reaction.version} src={artwork ?? undefined}
-          alt="" draggable={false} />
+        <ArtworkPlayer className="pet-art" playKey={reaction.version} source={artwork} />
         <div className="accessory" aria-hidden="true" />
       </div>
       <div className={"hint" + (hintHidden ? " hidden" : "")}>拖动我 · M 市场 · H 小窝</div>
