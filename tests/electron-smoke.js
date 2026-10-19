@@ -20,8 +20,9 @@ async function run() {
     pet.on("pageerror", (error) => pageErrors.push("pet: " + error.message));
     await pet.locator("#pet-art").waitFor();
     await pet.waitForFunction(() => {
-      const image = document.getElementById("pet-art");
-      return image.complete && image.naturalWidth > 0;
+      const element = document.getElementById("pet-art");
+      if (element instanceof HTMLVideoElement) return element.readyState >= 2;
+      return element.complete && element.naturalWidth > 0;
     });
 
     assert.equal(await pet.title(), "淘气桌宠");
@@ -44,8 +45,15 @@ async function run() {
     await market.locator(".pet-card").filter({ hasText: "冲刺猫" })
       .getByRole("button", { name: "选它陪伴" }).click();
     await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "cat-study");
-    await pet.waitForFunction(() => document.getElementById("pet-art").naturalWidth > 0);
-    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("data:image/gif"));
+    await pet.waitForFunction(() => {
+      const element = document.getElementById("pet-art");
+      if (element instanceof HTMLVideoElement) return element.readyState >= 2;
+      return element.naturalWidth > 0;
+    });
+    assert.equal(await pet.evaluate(() =>
+      document.getElementById("pet-art") instanceof HTMLVideoElement), true,
+    "内置宠物应当播放透明 WebM，而不是回退到 GIF");
+    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith("data:video/webm"));
     await market.screenshot({ path: "artifacts/market.png" });
     await pet.screenshot({ path: "artifacts/pet.png" });
 

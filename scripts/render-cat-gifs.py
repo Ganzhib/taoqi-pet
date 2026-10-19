@@ -8,6 +8,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+from pet_animation import save_webm
+
 SIZE = (280, 320)
 FRAMES = 12
 DURATION_MS = 95
@@ -152,10 +154,13 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     source = Image.open(args.source).convert("RGBA")
     for state in STATES:
-        frames = [gif_palette(gif_frame(source, state, index)) for index in range(FRAMES)]
-        frames[0].save(args.output / f"cat-{state}.gif", save_all=True,
-                       append_images=frames[1:], duration=DURATION_MS,
-                       loop=0, disposal=2, transparency=255, optimize=False)
+        frames = [gif_frame(source, state, index) for index in range(FRAMES)]
+        palettes = [gif_palette(frame) for frame in frames]
+        palettes[0].save(args.output / f"cat-{state}.gif", save_all=True,
+                         append_images=palettes[1:], duration=DURATION_MS,
+                         loop=0, disposal=2, transparency=255, optimize=False)
+        # GIF 留作降级与缩略图；主路线是带 8 bit alpha 的透明 WebM
+        save_webm(frames, args.output / f"cat-{state}.webm", DURATION_MS)
     render_icon(source, args.output)
     print("Rendered", len(STATES), "GIFs and app icons in", args.output)
 

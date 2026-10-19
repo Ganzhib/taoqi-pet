@@ -13,6 +13,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
+from pet_animation import save_webm
+
 SIZE = (280, 320)
 FRAMES = 12
 DURATION_MS = 95
@@ -251,6 +253,8 @@ def render_friend(friend, output):
     palettes[0].save(output / (friend + "-idle.gif"), save_all=True,
                      append_images=palettes[1:], duration=DURATION_MS,
                      loop=0, disposal=2, transparency=255, optimize=False)
+    # GIF 留作降级与缩略图；主路线是带 8 bit alpha 的透明 WebM
+    save_webm(frames, output / (friend + "-idle.webm"), DURATION_MS)
     return output / (friend + "-idle.gif")
 
 

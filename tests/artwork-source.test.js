@@ -21,14 +21,14 @@ function contextWith(customPets, files) {
   };
 }
 
-test("内置角色全部解析为本地 gif 素材", () => {
+test("内置角色优先解析为透明 WebM 素材", () => {
   for (const character of CHARACTERS) {
     const source = resolveArtworkSource(character.id, contextWith([], {}));
     assert.ok(source, character.name + " 缺少素材");
-    assert.equal(source.kind, "gif", character.name);
-    assert.equal(source.mime, "image/gif", character.name);
+    assert.equal(source.kind, "video", character.name);
+    assert.equal(source.mime, "video/webm", character.name);
     assert.equal(source.id, character.id);
-    assert.ok(source.url.startsWith("data:image/gif;base64,"), character.name + " 未编码为 data URL");
+    assert.ok(source.url.startsWith("data:video/webm;base64,"), character.name + " 未编码为 data URL");
   }
 });
 

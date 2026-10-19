@@ -4,8 +4,8 @@
 
 ```text
 assets/
-  pets/                 内置猫咪状态 GIF
-assets/source/          猫咪原始参考图
+  pets/                 内置角色动画：WebM（主路线，8 bit alpha）+ GIF（降级/缩略图）
+assets/source/          原始参考图
 build/                  Windows/macOS 应用图标
 src/
   electron/
@@ -13,6 +13,8 @@ src/
     pet-core.js         无 Electron 依赖的业务常量与纯函数
     character-generator.js 受控选项生成原创 SVG 角色
     settings-store.js   本地偏好的默认值、读取与保存
+    animation/
+      artwork-source.js 角色 id → 素材描述（格式优先级、编码缓存）
     preloads/
       pet.js            桌宠窗口的最小桥接
       market.js         市场窗口的最小桥接
@@ -38,9 +40,13 @@ src/
     shared/
       contracts.ts      三个 preload 桥接的 TypeScript 契约
       useArtwork.ts     跨页面共用的图片加载 Hook
+      ArtworkPlayer.tsx 按素材类型渲染 <video> 或 <img>，失败自动降级
 site/                   静态下载官网，发布时复制 GIF 与图标
 scripts/
-  render-cat-gifs.py    从原始参考图生成 GIF 与图标
+  render-cat-gifs.py    从原始参考图生成猫咪 GIF/WebM 与应用图标
+  render-friend-gifs.py 程序化生成五位动物伙伴的 GIF/WebM
+  render-pet-from-image.py 把任意插画抠图并生成 GIF/WebM
+  pet_animation.py      RGBA 帧序列 → 透明 WebM 的公共编码逻辑
 tests/
   pet-core.test.js      纯函数与关键不变量
   electron-smoke.js     真实窗口用户流程

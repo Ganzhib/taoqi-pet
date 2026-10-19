@@ -96,66 +96,86 @@ type ArtworkSource = { kind: "gif" | "video" | "image"; url: string; /* … */ }
 
 ## 五、M2：透明 WebM 主路线
 
-### M2.1 素材脚本改造
+### 5.0 实测结论（先定格式，再写代码）
 
-现有 `scripts/render-cat-gifs.py`、`scripts/render-friend-gifs.py` 都是 Pillow 画完帧后直接 `save(..., save_all=True)` 输出 GIF。改造点：把「生成帧」和「编码」拆开。
+在真机上用一张 542×636 的插画（柔边 + 投影 + 渐变，属于最难的用例）跑了 12 帧、280×320 的横评：
+
+| 格式 | 体积 | Alpha | 结论 |
+|---|---|---|---|
+| GIF（现状） | 463.6 KB | 1 bit | 基线 |
+| APNG | 1214.6 KB | 8 bit | ❌ 比 GIF 还大 2.6 倍 |
+| 动图 WebP q80 | 216.2 KB | 8 bit | ❌ 只降 51%，够不到目标 |
+| **WebM VP9 CRF30** | **30.7 KB** | **8 bit** | ✅ **-93%** |
+
+APNG 输在 PNG 是**整帧无损**，而 GIF 的小体积恰恰是靠丢掉 alpha 分辨率换来的——想拿回 alpha 就得付出体积。WebP 帧间差分已经好很多，但仍是 51% 的量级。
+
+> 这也是对三、格式选型里那张表的一次实测复核：WebM VP9 alpha 是唯一同时满足「8 bit alpha + 体积大幅下降 + Chromium 零成本播放」的选项。
+
+### 5.1 素材脚本改造
+
+新增 `scripts/pet_animation.py` 放公共编码逻辑，三个渲染脚本共用：
 
 ```python
-def render_frames(kind):            # 已有 raw_frame() 即是
-    return [raw_frame(kind, i) for i in range(FRAMES)]   # List[Image.Image] RGBA
-
-def emit_gif(frames, output):       # 保留，用于缩略图与降级
-    ...                              # 现有逻辑不动
-
-def emit_webm(frames, output):      # 新增
-    # 1. 帧序列写成临时 PNG
-    # 2. 调 ffmpeg 编码
+save_webm(frames, path, duration_ms=95, crf=30)   # RGBA 帧序列 → 透明 WebM
+decode_webm_frame(path, index=0)                  # 回读一帧，供对比图使用
 ```
+
+`render-cat-gifs.py` / `render-friend-gifs.py` 的改动很小：原本直接对「调色板化后的帧」保存 GIF，现在改成先留一份 RGBA 帧，GIF 照旧，另外补一个 `.webm`。
 
 编码命令（**关键参数不可省**）：
 ```bash
 ffmpeg -y -framerate 1000/95 -i <tmpdir>/%04d.png \
   -c:v libvpx-vp9 -pix_fmt yuva420p \
-  -b:v 0 -crf 32 -auto-alt-ref 0 -row-mt 1 -an \
+  -b:v 0 -crf 30 -auto-alt-ref 0 -row-mt 1 -an \
   <output>.webm
 ```
 
 - `-pix_fmt yuva420p`：保留 alpha 通道
 - `-auto-alt-ref 0`：**VP9 带 alpha 时必需**，否则 altref 帧会破坏 alpha
-- `-b:v 0 -crf 32`：恒定质量模式
+- `-b:v 0 -crf 30`：恒定质量模式
 
-### M2.2 自定义协议（绕开 asar）
+**回读校验的坑**：ffmpeg 自带的原生 VP9 解码器**不还原 alpha**，直接 `ffmpeg -i x.webm out.png` 会得到全不透明的图。必须 `-c:v libvpx-vp9` 指定 libvpx 解码器，否则会误判成「alpha 丢了」。
 
-`<video>` 直读 `file://.../app.asar/assets/...` 不可靠。注册协议中转：
+### 5.2 素材地址：暂用 data URL，协议延后
 
-**`src/electron/animation/protocol.js`**
-```js
-protocol.handle("pet", async (request) => {
-  const { pathname } = new URL(request.url);
-  const relative = decodeURIComponent(pathname).replace(/^\/+/, "");
-  const file = path.join(ASSETS_ROOT, relative);
-  if (!file.startsWith(ASSETS_ROOT)) return new Response("forbidden", { status: 403 });
-  try {
-    const data = await fs.promises.readFile(file);   // Electron 的 fs 支持 asar 内读取
-    return new Response(data, { headers: { "Content-Type": mimeFor(file) } });
-  } catch {
-    return new Response("not found", { status: 404 });
-  }
-});
-```
+原计划在 M2 注册 `pet://` 自定义协议绕开 asar。**实测后决定延后**：单段 WebM 只有 30–50 KB，base64 后约 40–67 KB，走 `<video src="data:video/webm;base64,...">` 完全够用，而自定义协议要额外处理 scheme 权限、asar 路径和打包目录，风险与收益不成比例。
 
-### M2.3 降级链
+M1 已经把「素材解析」和「渲染方式」拆开了，将来真需要换协议，只改 `artwork-source.js` 一处。
+
+### 5.3 降级链
 
 ```
-webm 存在且 <video> 可播放  →  用 video
-否则 gif 存在               →  用 img
-否则                        →  占位（与现状 getArtwork 返回 null 一致）
+webm 存在且 <video> 能解码   →  <video>（8 bit alpha）
+否则                         →  <img> 播 GIF（1 bit alpha，视觉回到旧观感）
+否则                         →  空 src，与改造前 getArtwork 返回 null 一致
 ```
 
-`ArtworkPlayer` 监听 `<video>` 的 `error` 事件，失败自动切 `<img>`。
+`ArtworkPlayer` 监听 `<video>` 的 `error`：记录失败的 URL，并调用已有的 `getArtwork` 取 GIF 兜底。换角色后 URL 变了，会自动重试视频。
+
+### 5.4 市场缩略图仍用 GIF
+
+市场首页同时铺 13 张卡，若每张都挂一个 `<video>` 就是 13 路解码，开销不划算。卡片继续用 GIF 缩略图，只有桌宠窗口（单实例）走 WebM。
+
+### 5.5 实测收益（13 个内置角色）
+
+| 分组 | GIF 合计 | WebM 合计 | 降幅 |
+|---|---|---|---|
+| 8 种橘白猫状态 | 3518 KB | 288 KB | -92% |
+| 5 位动物伙伴 | 152 KB | 71 KB | -53% |
+| **合计** | **3670 KB** | **359 KB** | **-90%** |
+
+### 5.6 重新生成
+
+```bash
+python3 scripts/render-cat-gifs.py --source assets/source/catbuddy-reference.png --output assets/pets
+python3 scripts/render-friend-gifs.py --output assets/pets
+python3 scripts/render-pet-from-image.py --source <插画> --id <id> --output assets/pets --preview
+```
+
+`render-pet-from-image.py` 是新加的通用入口：抠图（软 alpha + 反解前景色 + 补内部空洞）→ 12 帧呼吸 → 同时输出 GIF 与 WebM，`--preview` 还会生成深浅背景与边缘放大的对比图。
 
 ### 验收
-A2.1–A2.5（见 requirements.md）。重点：**黑/白双壁纸截图无白边**，总体积降 ≥70%。
+A2.1–A2.5（见 requirements.md）。重点：**黑/白双壁纸截图无白边**，总体积降 ≥70%（实测 -90%）。
 
 ---
 
