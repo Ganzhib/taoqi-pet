@@ -6,7 +6,6 @@ on:
     paths:
       - site/**
       - assets/pets/**
-      - assets/icon.png
       - .github/workflows/deploy-pages.yml
   workflow_dispatch:
 
@@ -31,9 +30,8 @@ jobs:
           set -euo pipefail
           mkdir -p _site/media
           cp site/index.html site/styles.css site/main.js _site/
-          cp assets/icon.png _site/media/icon.png
-          cp assets/pets/cat-*.gif _site/media/
-          test "$(find _site/media -name 'cat-*.gif' | wc -l)" -eq 8
+          cp assets/pets/*-idle.gif _site/media/
+          test "$(find _site/media -name '*-idle.gif' | wc -l)" -eq 7
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

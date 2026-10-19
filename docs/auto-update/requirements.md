@@ -29,5 +29,5 @@ Electron 和 electron-builder 均要求 macOS 应用签名后才能自动安装�
 - 发布工作流同时上传 Windows/macOS 安装包、ZIP 与更新清单；清单和安装包必须来自同一次构建，Release 在文件齐备后才公开。工作流分两条：`.github/workflows/release.yml` 发布正式版（不带 prerelease 标记），`.github/workflows/release-preview.yml` 发布预览版，两者都手动触发。
 - 正式版使用 `latest.yml` / `latest-mac.yml`，预览版使用 `preview.yml` / `preview-mac.yml`，两种发布不能覆盖对方的清单。预览版客户端检查公开 Release 后，按候选版本临时选择 preview 或 latest 渠道，因此既能接收后续预览版，也能转入正式版。
 - 版本检查只接受本项目格式 `v主.次.修-preview.序号` 或正式版；忽略草稿和无效标签。正式版客户端同时忽略 GitHub 标记为 prerelease 的 Release 和带 `-preview` 后缀的版本，避免发布元数据配置错误时串入预览渠道。
-- v0.3.1 是首个隔离正式/预览渠道的版本。此前的正式安装版已固定到 preview 渠道，无法通过原有更新器安全切换到 latest，需要手动安装一次 v0.3.1 或之后的正式版。
+- v0.3.2 是首个隔离正式/预览渠道的版本。v0.3.0 与 v0.3.1 的正式安装版已固定到 preview 渠道，无法通过原有更新器安全切换到 latest，需要手动安装一次 v0.3.2 或之后的正式版。
 - `npm run check`、`npm test`、Electron smoke 与 GitHub Actions 构建通过后，才视为代码和打包验收。Windows 从旧安装版到下一版的真实原地更新，仍需在 Windows 设备上单独验收。

@@ -4,9 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#fff4df" />
-  <meta name="description" content="淘气桌宠：一只会陪你学习、赶工、摸鱼和下班的橘白猫。八种循环 GIF 状态，免费、离线、无需登录。下载 Windows 和 macOS 预览版。" />
-  <title>淘气桌宠 · 打工也要有猫陪</title>
-  <link rel="icon" type="image/png" href="./media/icon.png" />
+  <meta name="description" content="淘气桌宠：把喜欢的角色放到桌面。可选免费内置伙伴、导入自己的图片，也能亲手捏一个专属桌宠；离线使用、无需登录。" />
+  <title>淘气桌宠 · 你的桌面伙伴由你决定</title>
   <link rel="stylesheet" href="./styles.css" />
   <script defer src="./main.js"></script>
 </head>
@@ -14,12 +13,12 @@
   <a class="skip-link" href="#main">跳到正文</a>
   <header class="topbar">
     <a class="brand" href="#" aria-label="淘气桌宠首页">
-      <img src="./media/icon.png" alt="" width="42" height="42" />
+      <span class="brand-mark" aria-hidden="true">淘</span>
       <span>淘气桌宠</span>
     </a>
     <nav aria-label="主导航">
-      <a href="#states">猫的状态</a>
-      <a href="#features">怎么玩</a>
+      <a href="#pets">桌宠阵容</a>
+      <a href="#features">自由定制</a>
       <a href="#download">下载安装</a>
     </nav>
     <a class="nav-download" href="#download">免费获取 <span aria-hidden="true">↗</span></a>
@@ -28,95 +27,98 @@
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="status-dot"></span> 你的桌面，缺一只离谱的猫</div>
-        <h1 id="hero-title">打工可以累，<br /><em>猫不能无聊。</em></h1>
-        <p class="hero-lede">学习时一起皱眉，赶工时一起崩溃，摸鱼时一起装忙。把这只橘白猫放在桌面上，让每一天多一点会动的快乐。</p>
+        <div class="eyebrow"><span class="status-dot"></span> 免费、离线、无需登录</div>
+        <h1 id="hero-title">你的桌面，<br /><em>住谁都可以。</em></h1>
+        <p class="hero-lede">从免费伙伴中挑一个，导入你喜欢的图片，或者亲手捏出独一无二的角色。桌宠长什么样、叫什么名字，都由你决定。</p>
         <div class="hero-actions">
-          <a class="button primary" href="#download">下载免费预览版 <span aria-hidden="true">↗</span></a>
-          <a class="button secondary" href="#states">看看八种状态 <span aria-hidden="true">↓</span></a>
+          <a class="button primary" href="#download">下载正式版 <span aria-hidden="true">↗</span></a>
+          <a class="button secondary" href="#pets">认识这些伙伴 <span aria-hidden="true">↓</span></a>
         </div>
-        <p class="microcopy">Windows / macOS · 无需登录 · 所有桌宠功能免费</p>
+        <p class="microcopy">Windows / macOS · 所有桌宠功能永久免费 · 自定义素材只留在本机</p>
       </div>
-      <div class="hero-visual" aria-label="桌面宠物动图预览">
-        <div class="hero-orbit orbit-one" aria-hidden="true">DDL</div>
-        <div class="hero-orbit orbit-two" aria-hidden="true">喵!</div>
+      <div class="hero-visual" aria-label="可切换的桌面宠物预览">
+        <div class="hero-orbit orbit-one" aria-hidden="true">可导入</div>
+        <div class="hero-orbit orbit-two" aria-hidden="true">可捏宠</div>
         <div class="preview-window">
           <div class="preview-chrome"><span></span><span></span><span></span><b>我的桌面</b></div>
           <div class="preview-content">
             <div class="fake-folder folder-one" aria-hidden="true"></div>
             <div class="fake-folder folder-two" aria-hidden="true"></div>
-            <img id="hero-cat" src="./media/cat-idle.gif" alt="发呆猫正在循环动起来" width="280" height="320" />
-            <div id="hero-caption" class="speech-bubble">今天的任务：先可爱一下。</div>
+            <div class="hero-pet-art">
+              <img id="hero-pet" src="./media/penguin-idle.gif" alt="企鹅正在桌面上陪伴" width="280" height="320" />
+              <span id="hero-symbol" class="pet-symbol hero-symbol" aria-hidden="true">企</span>
+            </div>
+            <div id="hero-caption" class="speech-bubble" aria-live="polite">今天也一起慢慢来。</div>
           </div>
         </div>
-        <div class="hero-sticker" aria-hidden="true">100% 免费<br />100% 有梗</div>
+        <div class="hero-sticker" aria-hidden="true">选一个<br />也能做一个</div>
       </div>
     </section>
 
     <section class="ticker" aria-label="产品特点">
-      <div class="ticker-inner">不打卡 · 不扣分 · 不付费解锁 <span>✳</span> 点击、拖动、摸鱼、陪玩 <span>✳</span> 八组真正循环的 GIF <span>✳</span> 不打卡 · 不扣分 · 不付费解锁</div>
+      <div class="ticker-inner">选内置伙伴 · 导入本地图片 · 自由捏宠 <span>✳</span> 点击、拖动、陪玩、安静陪伴 <span>✳</span> 不打卡 · 不扣分 · 不付费解锁 <span>✳</span> 选内置伙伴 · 导入本地图片 · 自由捏宠</div>
     </section>
 
-    <section id="states" class="states wrap" aria-labelledby="states-title">
+    <section id="pets" class="states wrap" aria-labelledby="pets-title">
       <div class="section-head">
-        <div><span class="section-index">01 / 猫的状态</span><h2 id="states-title">你的情绪，它都替你演了。</h2></div>
-        <p>同一只猫，八种离谱日常。点一张卡片，看看它如何在你的桌面上陪你演。</p>
+        <div><span class="section-index">01 / 桌宠阵容</span><h2 id="pets-title">不是固定主角，<br />是你的选择。</h2></div>
+        <p>企鹅、猫咪、小狗、小龙、兔子和团子都可以住进桌面。点一张卡片，试试谁和你更合拍。</p>
       </div>
       <div class="state-grid">
-        <button class="state-card is-active" type="button" data-state="idle" aria-pressed="true"><img src="./media/cat-idle.gif" alt="" loading="lazy" /><span class="state-meta"><strong>发呆猫</strong><small>缓冲中...</small></span></button>
-        <button class="state-card" type="button" data-state="study" aria-pressed="false"><img src="./media/cat-study.gif" alt="" loading="lazy" /><span class="state-meta"><strong>冲刺猫</strong><small>知识加载中</small></span></button>
-        <button class="state-card" type="button" data-state="work" aria-pressed="false"><img src="./media/cat-work.gif" alt="" loading="lazy" /><span class="state-meta"><strong>赶工猫</strong><small>DDL 追我跑</small></span></button>
-        <button class="state-card" type="button" data-state="coffee" aria-pressed="false"><img src="./media/cat-coffee.gif" alt="" loading="lazy" /><span class="state-meta"><strong>咖啡续命猫</strong><small>灵魂上线</small></span></button>
-        <button class="state-card" type="button" data-state="debug" aria-pressed="false"><img src="./media/cat-debug.gif" alt="" loading="lazy" /><span class="state-meta"><strong>修 Bug 猫</strong><small>又是我写的</small></span></button>
-        <button class="state-card" type="button" data-state="slack" aria-pressed="false"><img src="./media/cat-slack.gif" alt="" loading="lazy" /><span class="state-meta"><strong>摸鱼猫</strong><small>静态分析中</small></span></button>
-        <button class="state-card" type="button" data-state="nap" aria-pressed="false"><img src="./media/cat-nap.gif" alt="" loading="lazy" /><span class="state-meta"><strong>装睡猫</strong><small>闭眼思考</small></span></button>
-        <button class="state-card" type="button" data-state="cheer" aria-pressed="false"><img src="./media/cat-cheer.gif" alt="" loading="lazy" /><span class="state-meta"><strong>下班猫</strong><small>收工撒花</small></span></button>
+        <button class="state-card is-active" type="button" data-pet="penguin" data-image="penguin-idle.gif" data-symbol="企" data-caption="今天也一起慢慢来。" aria-pressed="true"><span class="pet-art"><img src="./media/penguin-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">企</span></span><span class="state-meta"><strong>企鹅队长</strong><small>默认伙伴</small></span></button>
+        <button class="state-card" type="button" data-pet="kitty" data-image="kitty-idle.gif" data-symbol="喵" data-caption="小小一只，也能装下好心情。" aria-pressed="false"><span class="pet-art"><img src="./media/kitty-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">喵</span></span><span class="state-meta"><strong>小奶猫</strong><small>软乎乎</small></span></button>
+        <button class="state-card" type="button" data-pet="doggy" data-image="doggy-idle.gif" data-symbol="汪" data-caption="开工！我负责在旁边加油。" aria-pressed="false"><span class="pet-art"><img src="./media/doggy-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">汪</span></span><span class="state-meta"><strong>打工狗</strong><small>元气搭档</small></span></button>
+        <button class="state-card" type="button" data-pet="dragon" data-image="dragon-idle.gif" data-symbol="龙" data-caption="今天的灵感，会不会喷火？" aria-pressed="false"><span class="pet-art"><img src="./media/dragon-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">龙</span></span><span class="state-meta"><strong>泡泡龙</strong><small>脑洞担当</small></span></button>
+        <button class="state-card" type="button" data-pet="bunny" data-image="bunny-idle.gif" data-symbol="兔" data-caption="跳一跳，再做下一件事。" aria-pressed="false"><span class="pet-art"><img src="./media/bunny-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">兔</span></span><span class="state-meta"><strong>蹦蹦兔</strong><small>轻快选手</small></span></button>
+        <button class="state-card" type="button" data-pet="blob" data-image="blob-idle.gif" data-symbol="团" data-caption="软绵绵地，把压力接住。" aria-pressed="false"><span class="pet-art"><img src="./media/blob-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">团</span></span><span class="state-meta"><strong>云朵团子</strong><small>治愈派</small></span></button>
+        <button class="state-card" type="button" data-pet="cat" data-image="cat-idle.gif" data-symbol="橘" data-caption="发一会儿呆，也算认真生活。" aria-pressed="false"><span class="pet-art"><img src="./media/cat-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">橘</span></span><span class="state-meta"><strong>橘白猫</strong><small>经典伙伴</small></span></button>
+        <div class="state-card custom-card" aria-label="自定义桌宠方式"><span class="custom-plus" aria-hidden="true">＋</span><span class="state-meta"><strong>你的那一只</strong><small>导入或捏宠</small></span></div>
       </div>
-      <p class="state-note">以上均为循环 GIF 动图。角色素材基于本站提供的橘白猫形象制作。</p>
+      <p class="state-note">7 位内置伙伴全部免费。你导入或创作的角色保存在本机，不会被静默上传。</p>
     </section>
 
     <section id="features" class="features">
       <div class="wrap feature-layout">
-        <div class="feature-intro"><span class="section-index">02 / 不只是看看</span><h2>它会动，<br />也会陪你玩。</h2><p>不用账号，也没有签到压力。打开就有一只猫，喜欢待在哪里由你决定。</p></div>
+        <div class="feature-intro"><span class="section-index">02 / 自由定制</span><h2>从“有一只”，<br />到“就是这一只”。</h2><p>不需要会画画，也不必接受固定角色。先从现成伙伴开始，随时换成真正属于你的桌宠。</p></div>
         <div class="feature-list">
-          <article><span class="feature-num">01</span><div><h3>放在桌面上</h3><p>拖动换位置，开启置顶后陪在应用上方；不想被打扰时可暂停自主活动。</p></div></article>
-          <article><span class="feature-num">02</span><div><h3>点点就有回应</h3><p>点击、双击、长按都能互动，还能喂小鱼、陪玩、夸夸它。</p></div></article>
-          <article><span class="feature-num">03</span><div><h3>给猫安个小窝</h3><p>换场景、摆家具，玩 20 秒抓鱼小游戏，布置与最佳成绩保存在本机。</p></div></article>
-          <article><span class="feature-num">04</span><div><h3>带上自己的宠物</h3><p>导入 PNG、JPG、GIF、WebP 图片；也能在应用里捏一个专属角色。</p></div></article>
+          <article><span class="feature-num">01</span><div><h3>挑选免费伙伴</h3><p>在宠物市场自由切换 7 位内置角色，没有付费角色、抽卡或订阅。</p></div></article>
+          <article><span class="feature-num">02</span><div><h3>导入自己的图片</h3><p>支持 PNG、JPG、GIF、WebP；静态图片会自动抠出主体，素材仅保存在本机。</p></div></article>
+          <article><span class="feature-num">03</span><div><h3>亲手捏一个角色</h3><p>组合造型、颜色和表情，实时预览后保存，还能给新伙伴取自己的名字。</p></div></article>
+          <article><span class="feature-num">04</span><div><h3>按你的节奏陪伴</h3><p>拖动、互动、置顶、专注或安静待着；自主活动随时可暂停。</p></div></article>
         </div>
       </div>
     </section>
 
     <section id="download" class="download wrap" aria-labelledby="download-title">
       <div class="section-head">
-        <div><span class="section-index">03 / 开始陪伴</span><h2 id="download-title">把这只猫领回桌面。</h2></div>
-        <p>正式版开放下载。选择与你的设备匹配的安装包，之后就能离线陪伴。</p>
+        <div><span class="section-index">03 / 开始陪伴</span><h2 id="download-title">给你的伙伴，<br />留一个桌面位置。</h2></div>
+        <p>正式版开放下载。选择与你设备匹配的安装包，打开后再决定谁来陪你。</p>
       </div>
       <div class="download-grid">
         <article class="download-card">
           <div class="os-icon" aria-hidden="true">⊞</div>
           <h3>Windows</h3>
           <p>适用于 x64 设备。安装版支持新版提醒、后台下载与重启更新；便携版需手动下载新版。</p>
-          <a class="button primary" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.0/taoqi-pet-setup-0.3.0-win-x64.exe">下载安装版 <span aria-hidden="true">↗</span></a>
-          <a class="text-link" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.0/taoqi-pet-portable-0.3.0-win-x64.exe">获取便携版 →</a>
+          <a class="button primary" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.2/taoqi-pet-setup-0.3.2-win-x64.exe">下载安装版 <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.2/taoqi-pet-portable-0.3.2-win-x64.exe">获取便携版 →</a>
         </article>
         <article class="download-card">
           <div class="os-icon apple" aria-hidden="true">⌘</div>
           <h3>macOS</h3>
           <p>请按芯片选择：Apple Silicon 下载 arm64，Intel 下载 x64。当前未签名版本会提醒更新，安装需手动完成。</p>
-          <a class="button primary" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.0/taoqi-pet-0.3.0-mac-arm64.dmg">Apple Silicon · DMG <span aria-hidden="true">↗</span></a>
-          <a class="text-link" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.0/taoqi-pet-0.3.0-mac-x64.dmg">Intel · DMG →</a>
+          <a class="button primary" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.2/taoqi-pet-0.3.2-mac-arm64.dmg">Apple Silicon · DMG <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/Ganzhib/taoqi-pet/releases/download/v0.3.2/taoqi-pet-0.3.2-mac-x64.dmg">Intel · DMG →</a>
         </article>
       </div>
-      <div class="release-note"><strong>关于安装包</strong><p>当前安装包尚未签名，macOS 也尚未公证；安装时系统可能提示风险。请只从 <a href="https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0">官方 GitHub Release</a> 下载。代码签名与公证仍在推进。</p></div>
+      <div class="release-note"><strong>关于安装包</strong><p>当前安装包尚未签名，macOS 也尚未公证；安装时系统可能提示风险。请只从 <a href="https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.2">官方 GitHub Release</a> 下载。代码签名与公证仍在推进。</p></div>
     </section>
 
     <section class="closing">
-      <div class="wrap closing-inner"><img src="./media/cat-cheer.gif" alt="下班猫正在撒花" width="160" height="183" loading="lazy" /><div><span class="section-index">就从今天开始</span><h2>谁说桌面只能放文件？</h2><p>给它一个角落，它把打工日常演成喜剧。</p></div><a class="button dark" href="#download">带猫回家 ↗</a></div>
+      <div class="wrap closing-inner"><div class="closing-pets" aria-hidden="true"><img src="./media/blob-idle.gif" alt="" width="140" height="160" loading="lazy" /><img src="./media/bunny-idle.gif" alt="" width="118" height="135" loading="lazy" /></div><div><span class="section-index">就从今天开始</span><h2>谁说桌面只能放文件？</h2><p>选一个、导入一个，或者捏一个。让你的桌面多一点生命力。</p></div><a class="button dark" href="#download">带伙伴回家 ↗</a></div>
     </section>
   </main>
   <footer class="footer wrap">
-    <div class="brand"><img src="./media/icon.png" alt="" width="38" height="38" /><span>淘气桌宠</span></div>
+    <div class="brand"><span class="brand-mark" aria-hidden="true">淘</span><span>淘气桌宠</span></div>
     <p>所有桌宠功能永久免费。只有你主动点击时，应用才会打开外部工具入口。</p>
     <div><a href="https://github.com/Ganzhib/taoqi-pet">GitHub 源码</a><a href="https://github.com/Ganzhib/taoqi-pet/blob/main/docs/privacy.md">隐私说明</a><a href="https://github.com/Ganzhib/taoqi-pet/releases">全部版本</a></div>
   </footer>

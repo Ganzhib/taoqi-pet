@@ -32,9 +32,8 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/taoqi-site/media"
           cp site/index.html site/styles.css site/main.js "$RUNNER_TEMP/taoqi-site/"
-          cp assets/icon.png "$RUNNER_TEMP/taoqi-site/media/icon.png"
-          cp assets/pets/cat-*.gif "$RUNNER_TEMP/taoqi-site/media/"
-          test "$(find "$RUNNER_TEMP/taoqi-site/media" -name 'cat-*.gif' | wc -l)" -eq 8
+          cp assets/pets/*-idle.gif "$RUNNER_TEMP/taoqi-site/media/"
+          test "$(find "$RUNNER_TEMP/taoqi-site/media" -name '*-idle.gif' | wc -l)" -eq 7
           tar -C "$RUNNER_TEMP/taoqi-site" -czf "$RUNNER_TEMP/taoqi-site.tar.gz" .
 
       - name: Configure independent SSH key
@@ -122,6 +121,6 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error https://pet.ganzhibin.icu/ -o "$RUNNER_TEMP/index.html"
           grep -q '淘气桌宠' "$RUNNER_TEMP/index.html"
-          curl --fail --silent --show-error https://pet.ganzhibin.icu/media/cat-study.gif \
-            -o "$RUNNER_TEMP/cat-study.gif"
-          test "$(head -c 6 "$RUNNER_TEMP/cat-study.gif")" = GIF89a
+          curl --fail --silent --show-error https://pet.ganzhibin.icu/media/penguin-idle.gif \
+            -o "$RUNNER_TEMP/penguin-idle.gif"
+          test "$(head -c 6 "$RUNNER_TEMP/penguin-idle.gif")" = GIF89a

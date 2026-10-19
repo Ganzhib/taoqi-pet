@@ -43,13 +43,13 @@
 
     npm run dist
 
-也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。当前可访问的下载官网为 [GitHub Pages 预览站](https://ganzhib.github.io/taoqi-pet/)；独立域名 `pet.ganzhibin.icu` 待服务器部署完成后启用。
+也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。当前可访问的[下载官网](https://ganzhib.github.io/taoqi-pet/)以可自定义桌宠为主线，展示 7 位免费内置伙伴、本地图片导入与可视化捏宠；独立域名 `pet.ganzhibin.icu` 待服务器部署完成后启用。
 
 产品定位、技术设计与后续任务见[产品与技术规划](docs/product-technical-plan.md)。新增页面和角色时请遵循[代码结构与命名约定](docs/code-structure.md)。
 
 ## 发布状态
 
-[v0.3.0](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0) 是首个正式版，提供 Windows 和 macOS 未签名安装包。除橘白打工猫的八种状态外，市场新增小奶猫、打工狗、泡泡龙、蹦蹦兔、云朵团子五位动物伙伴；导入静态图片时自动抠图，只保留宠物主体。v0.3.0 的正式安装版仍错误地跟随 preview 渠道，需要手动安装一次 v0.3.1 或之后的正式版才能切回正式渠道。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
+[v0.3.2](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.2) 是当前正式版：默认使用企鹅，内置角色精简为七位，并加入原地陪伴、自由散步和跟随鼠标三种模式；同时修复正式版误跟随 preview 更新通道的问题。v0.3.0 与 v0.3.1 的正式安装版需要手动安装一次 v0.3.2 或之后的正式版才能切回正式渠道。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
 
 更新机制的适用范围和发布流程见[自动更新设计](docs/auto-update/requirements.md)。本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
 
@@ -57,4 +57,4 @@
 
 代码采用 MIT 许可，见 [LICENSE](LICENSE)。内置 GIF 角色与图标由仓库所有者提供的橘白猫形象制作，没有导入第三方动漫角色素材。用户自行导入的图片保留在本机，不属于仓库内置素材。
 
-角色动图由 `scripts/render-cat-gifs.py` 从 `assets/source/catbuddy-reference.png` 生成；下载官网源码位于 `site/`。本版的动图与官网设计见 [需求和技术设计](docs/cat-gif-download-site/requirements.md)。
+角色动图由 `scripts/render-cat-gifs.py` 与 `scripts/render-friend-gifs.py` 生成；下载官网源码位于 `site/`，官网不绑定单一动物形象。动图与官网设计见 [需求和技术设计](docs/cat-gif-download-site/requirements.md)。
