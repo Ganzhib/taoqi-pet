@@ -60,7 +60,7 @@ interface MarketBridge {
   getCatalog(): Promise<PetCatalog>;
   getArtwork(id: string): Promise<string | null>;
   select(id: string): Promise<boolean>;
-  importPet(): Promise<string | null>;
+  importPet(): Promise<{ id: string; cutout: boolean } | null>;
   previewGenerated(options: GeneratedPetOptions): Promise<string>;
   createGenerated(options: GeneratedPetOptions): Promise<string>;
   removePet(id: string): Promise<boolean>;

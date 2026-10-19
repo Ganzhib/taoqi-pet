@@ -79,6 +79,7 @@ export function MarketApp() {
   const [catalog, setCatalog] = useState<PetCatalog | null>(null);
   const [category, setCategory] = useState("全部");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [importing, setImporting] = useState(false);
   const [creatorOpen, setCreatorOpen] = useState(false);
   const refreshVersion = useRef(0);
@@ -136,8 +137,10 @@ export function MarketApp() {
   async function importPet() {
     setImporting(true);
     try {
-      if (await window.petMarket.importPet()) {
+      const imported = await window.petMarket.importPet();
+      if (imported) {
         setCategory("我的创作");
+        setNotice(imported.cutout ? "已自动抠图，只留下宠物主体。" : "没有检测到明显的背景，已按原图导入。");
         await refresh();
       }
       setError("");
@@ -166,8 +169,8 @@ export function MarketApp() {
       <header className="hero">
         <div className="hero-copy">
           <span className="eyebrow">TAOQI PET MARKET</span>
-          <h1>八种打工猫，今天是哪一只？</h1>
-          <p>同一只猫的八种真实 GIF 状态，也欢迎带自己的图片来。</p>
+          <h1>十三种小伙伴，今天是哪一只？</h1>
+          <p>打工猫天团加上五位动物伙伴，也欢迎带自己的图片来。</p>
           <span className="free-badge">全部免费 · 无账号 · 无付费解锁</span>
         </div>
         <div className="hero-actions">
@@ -188,6 +191,7 @@ export function MarketApp() {
           ))}
         </nav>
         <p id="status" className="status" role="status">{status}</p>
+        {notice && <p className="notice">{notice}</p>}
         <section id="pet-grid" className="pet-grid" aria-label="宠物列表">
           {visible.map((pet) => (
             <PetCard key={pet.id} pet={pet} active={pet.id === catalog?.selectedId}
@@ -198,7 +202,7 @@ export function MarketApp() {
           )}
         </section>
       </main>
-      <footer>导入 PNG、JPG、GIF 或 WebP 图片，单张不超过 5 MB。图片只保存在这台电脑上。</footer>
+      <footer>导入 PNG、JPG、GIF 或 WebP 图片，单张不超过 5 MB；静态图片导入时自动抠图。图片只保存在这台电脑上。</footer>
     </>
   );
 }

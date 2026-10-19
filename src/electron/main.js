@@ -6,6 +6,7 @@ const { TOOLBOX_URL, CHARACTERS, DECORATIONS, IMAGE_TYPES, HOME_THEMES, HOME_FUR
 
 const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSettings } = require("./settings-store");
 const { renderPetSvg } = require("./character-generator");
+const { cutoutStaticImage } = require("./cutout");
 const { createUpdateManager } = require("./update-manager");
 
 const BASE_SIZE = { width: 240, height: 280 };
@@ -224,20 +225,21 @@ async function importCustomPet() {
   const bytes = fs.readFileSync(source);
   const type = detectImageType(bytes);
   if (!type) throw new Error("请选择 PNG、JPG、GIF 或 WebP 图片。");
+  const cut = type.extension === "gif" ? null : cutoutStaticImage(bytes);
   const pet = {
     id: "custom-" + randomUUID(),
     name: path.parse(source).name.trim().slice(0, 32) || "我的宠物",
-    extension: type.extension,
+    extension: cut ? "png" : type.extension,
   };
   fs.mkdirSync(path.dirname(customPetPath(pet)), { recursive: true });
-  fs.writeFileSync(customPetPath(pet), bytes);
+  fs.writeFileSync(customPetPath(pet), cut ?? bytes);
   settings.customPets.push(pet);
   settings.characterId = pet.id;
   saveSettings(settings);
   sendState();
   notifyMarket();
   notifyHome();
-  return pet.id;
+  return { id: pet.id, cutout: Boolean(cut) };
 }
 
 function createGeneratedPet(options) {
