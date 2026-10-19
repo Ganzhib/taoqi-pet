@@ -1,5 +1,7 @@
 # 内置角色精简与企鹅默认角色 · 需求
 
+> 后续变更：咕咕嘎嘎动态桌宠加入后，默认角色已改为 `gugugaga-idle`，内置目录增至 8 位；最新要求见 [`../gugugaga-pet/requirements.md`](../gugugaga-pet/requirements.md)。本文件保留当时从多猫状态精简到七位角色的历史决策。
+
 对应技术设计：`architecture.md`。
 
 ## 背景

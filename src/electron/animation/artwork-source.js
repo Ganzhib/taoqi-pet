@@ -81,6 +81,15 @@ function petsRoot() {
   return path.join(__dirname, "../../../assets/pets");
 }
 
+function findBuiltInArtwork(id, characters) {
+  const character = characters.find((pet) => pet.id === id);
+  if (character) return character;
+  for (const owner of characters) {
+    if (Array.isArray(owner.variants) && owner.variants.includes(id)) return { id };
+  }
+  return null;
+}
+
 function resolveBuiltInSource(character, skipVideo = false) {
   for (const format of BUILT_IN_FORMATS) {
     if (skipVideo && format.kind === "video") continue;
@@ -123,7 +132,7 @@ function resolveArtworkSource(id, options = {}) {
   if (typeof id !== "string" || id.length === 0) return null;
   const characters = Array.isArray(options.characters) ? options.characters : [];
   const customPets = Array.isArray(options.customPets) ? options.customPets : [];
-  const character = characters.find((pet) => pet.id === id);
+  const character = findBuiltInArtwork(id, characters);
   if (character) return resolveBuiltInSource(character);
   const custom = customPets.find((pet) => pet.id === id);
   if (custom) return resolveCustomSource(custom, options.customPath);
@@ -141,7 +150,7 @@ function resolveArtworkSource(id, options = {}) {
 function resolveImageSource(id, options = {}) {
   if (typeof id !== "string" || id.length === 0) return null;
   const characters = Array.isArray(options.characters) ? options.characters : [];
-  const character = characters.find((pet) => pet.id === id);
+  const character = findBuiltInArtwork(id, characters);
   if (character) return resolveBuiltInSource(character, true);
   // 自定义宠物本来就是静态图/动图，不存在视频分支，原样返回
   return resolveArtworkSource(id, options);

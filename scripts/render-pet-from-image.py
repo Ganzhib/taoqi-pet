@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""把一张静态插画转成桌宠待机动图。
+"""把静态插画或逐帧精灵表转成桌宠动图。
 
 抠图走「已知背景的 matting」：先按与背景色的距离估出软 alpha，
 再反解前景色（unpremultiply），最后只保留最大的连通区域，
 顺手去掉文字、装饰点这类孤立元素。
 
-同一个角色会同时输出两种格式，用于对比透明通道质量：
+同一个角色会同时输出两种格式，用于兼顾透明通道质量和降级播放：
 
   <id>-idle.gif   GIF，1 bit 透明 + 256 色 —— 现状基线
-  <id>-idle.png   APNG，8 bit 透明 + 24 bit 色 —— 透明管线目标
+  <id>-idle.webm  VP9，8 bit 软透明 + 24 bit 色 —— 运行时主素材
 
 用法：
   python3 scripts/render-pet-from-image.py \\
       --source assets/source/penguin-reference.png --id penguin \\
       --output /tmp/out --canvas 280x320
+
+逐帧表用法：
+  python3 scripts/render-pet-from-image.py \\
+      --source assets/source/gugugaga-spritesheet.png --id gugugaga \\
+      --sprite-grid 3x3 --output assets/pets
 """
 
 import argparse
@@ -41,6 +46,26 @@ CORE_INSET = 3
 
 def load_reference(path):
     return Image.open(path).convert("RGBA")
+
+
+def reference_cutout(image):
+    """优先保留输入图自带的透明通道，否则再按背景色抠图。
+
+    图像生成工具导出的 PNG 已经带软 alpha；如果继续按边缘颜色估背景，
+    深色头发会被误判成背景。透明输入只清理主体外的残余光晕，不重新
+    估色，也不改写人物内部的颜色。
+    """
+    alpha = image.getchannel("A")
+    if alpha.getextrema()[0] < 255:
+        subject_mask = largest_component_alpha(image)
+        cut = image.copy()
+        cut.putalpha(ImageChops.multiply(alpha, subject_mask))
+        return cut, None
+
+    background = estimate_background(image)
+    cut = matte(image, background)
+    cut.putalpha(refine_alpha(cut.getchannel("A"), largest_component_alpha(cut)))
+    return cut, background
 
 
 def estimate_background(image):
@@ -201,6 +226,49 @@ def fit_canvas(image, canvas):
     return frame
 
 
+def sprite_frames(image, grid, canvas):
+    """把规则精灵表切为等比例、同基线的逐帧动画。
+
+    每格先独立清除生成图周围的彩色残影，再以整组动作的最大轮廓确定
+    唯一缩放比例。这样挥手、迈步和伸懒腰不会被逐帧强行缩放成同一
+    外接框，肢体动作的幅度可以完整保留。
+    """
+    columns, rows = (int(part) for part in grid.lower().split("x"))
+    if columns < 1 or rows < 1:
+        raise ValueError("sprite grid must contain positive columns and rows")
+
+    cells = []
+    for row in range(rows):
+        top = round(row * image.height / rows)
+        bottom = round((row + 1) * image.height / rows)
+        for column in range(columns):
+            left = round(column * image.width / columns)
+            right = round((column + 1) * image.width / columns)
+            cell = image.crop((left, top, right, bottom))
+            cut, _ = reference_cutout(cell)
+            cells.append(tight_bbox(cut))
+
+    max_width = max(cell.width for cell in cells)
+    max_height = max(cell.height for cell in cells)
+    target_width, target_height = canvas
+    scale = min(target_width / max_width, target_height / max_height) * 0.96
+    frames = []
+    for cell in cells:
+        size = (
+            max(1, round(cell.width * scale)),
+            max(1, round(cell.height * scale)),
+        )
+        resized = cell.resize(size, Image.Resampling.LANCZOS)
+        frame = Image.new("RGBA", canvas, (0, 0, 0, 0))
+        frame.paste(
+            resized,
+            ((target_width - size[0]) // 2, target_height - size[1]),
+            resized,
+        )
+        frames.append(frame)
+    return frames
+
+
 def idle_frames(subject, canvas):
     """12 帧无缝呼吸：缩放与位移都由 sin(2πt) 驱动，首尾自动衔接。"""
     frames = []
@@ -297,6 +365,16 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--canvas", default="280x320")
     parser.add_argument("--crf", type=int, default=30, help="VP9 恒定质量参数，越大体积越小")
+    parser.add_argument(
+        "--sprite-grid",
+        metavar="COLSxROWS",
+        help="把输入作为规则逐帧表切分，例如 3x3；省略时生成呼吸待机动画",
+    )
+    parser.add_argument(
+        "--exact-id",
+        action="store_true",
+        help="直接用角色 ID 作为文件名；换装形态用它避免被识别成独立 idle 角色",
+    )
     parser.add_argument("--preview", action="store_true", help="额外输出边缘对比图")
     args = parser.parse_args()
 
@@ -304,16 +382,20 @@ def main():
     canvas = (width, height)
 
     reference = load_reference(args.source)
-    background = estimate_background(reference)
-    cut = matte(reference, background)
-    cut.putalpha(refine_alpha(cut.getchannel("A"), largest_component_alpha(cut)))
-    cut = tight_bbox(cut)
-    subject = fit_canvas(cut, canvas)
-    frames = idle_frames(subject, canvas)
+    if args.sprite_grid:
+        frames = sprite_frames(reference, args.sprite_grid, canvas)
+        cut = reference
+        background = None
+    else:
+        cut, background = reference_cutout(reference)
+        cut = tight_bbox(cut)
+        subject = fit_canvas(cut, canvas)
+        frames = idle_frames(subject, canvas)
 
     args.output.mkdir(parents=True, exist_ok=True)
-    gif_path = args.output / f"{args.id}-idle.gif"
-    webm_path = args.output / f"{args.id}-idle.webm"
+    output_id = args.id if args.exact_id else f"{args.id}-idle"
+    gif_path = args.output / f"{output_id}.gif"
+    webm_path = args.output / f"{output_id}.webm"
     save_gif(frames, gif_path)
     try:
         save_webm(frames, webm_path, DURATION_MS, args.crf)
@@ -321,8 +403,14 @@ def main():
         print("跳过 WebM:", error)
 
     gif_size = gif_path.stat().st_size
-    print("背景色估计:", background)
-    print("裁切后尺寸:", cut.size)
+    if background is None:
+        print("输入透明通道: 已保留并清理主体外残余")
+    else:
+        print("背景色估计:", background)
+    if args.sprite_grid:
+        print(f"逐帧表: {args.sprite_grid}，共 {len(frames)} 帧")
+    else:
+        print("裁切后尺寸:", cut.size)
     print(f"GIF  : {gif_path.name}  {gif_size/1024:.1f} KB")
     if webm_path.exists():
         webm_size = webm_path.stat().st_size
@@ -330,7 +418,7 @@ def main():
               f"(-{100 - webm_size * 100 / gif_size:.0f}%)")
 
         if args.preview:
-            preview = args.output / f"{args.id}-compare.png"
+            preview = args.output / f"{output_id}-compare.png"
             contact_sheet(gif_roundtrip(frames[0]), decode_webm_frame(webm_path), preview)
             print("对比图:", preview)
 

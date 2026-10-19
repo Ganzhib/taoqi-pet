@@ -1,7 +1,23 @@
 const TOOLBOX_URL = "https://next.ganzhibin.icu/?utm_source=taoqi_pet&utm_medium=app&utm_content=toolbox";
-const DEFAULT_CHARACTER_ID = "penguin-idle";
+const DEFAULT_CHARACTER_ID = "gugugaga-idle";
 
 const CHARACTERS = [
+  {
+    id: "gugugaga-idle",
+    name: "咕咕嘎嘎",
+    category: "沙雕日常",
+    description: "书包一背，随时切换九种表情和穿搭。",
+    variants: [
+      "gugugaga-beanie",
+      "gugugaga-pajamas",
+      "gugugaga-overalls",
+      "gugugaga-happy",
+      "gugugaga-worker",
+      "gugugaga-prayer",
+      "gugugaga-daydream",
+      "gugugaga-cat",
+    ],
+  },
   { id: "penguin-idle", name: "企鹅", category: "沙雕日常", description: "自带羽绒服，还是觉得冷。" },
   { id: "cat-idle", name: "发呆猫", category: "沙雕日常", description: "什么都没做，但已经很努力了。" },
   { id: "kitty-idle", name: "小奶猫", category: "沙雕日常", description: "奶凶奶凶的，随时准备躺平。" },

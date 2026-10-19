@@ -12,6 +12,20 @@ function focusLabel(focusEndsAt: number) {
   return "专注 " + minutes + ":" + rest;
 }
 
+function artworkId(characterId: string | undefined, reaction: PetReaction | null,
+  motion: "idle" | "walk") {
+  if (characterId !== "gugugaga-idle") return characterId ?? null;
+  if (reaction === "double") return "gugugaga-happy";
+  if (reaction === "feed" || reaction === "play") return "gugugaga-worker";
+  if (reaction === "praise") return "gugugaga-prayer";
+  if (reaction === "look") return "gugugaga-daydream";
+  if (reaction === "nap") return "gugugaga-pajamas";
+  if (reaction === "long") return "gugugaga-cat";
+  if (reaction === "tap") return "gugugaga-overalls";
+  if (motion === "walk") return "gugugaga-beanie";
+  return "gugugaga-idle";
+}
+
 export function PetApp() {
   const [state, setState] = useState<PetState | null>(null);
   const [bubble, setBubble] = useState("");
@@ -23,7 +37,8 @@ export function PetApp() {
   const [hintHidden, setHintHidden] = useState(false);
   const [idleCycle, setIdleCycle] = useState(0);
   const [visible, setVisible] = useState(!document.hidden);
-  const artwork = useArtwork(state?.characterId ?? null, window.taoqiPet.getArtworkSource);
+  const activeArtworkId = artworkId(state?.characterId, reaction.kind, motion);
+  const artwork = useArtwork(activeArtworkId, window.taoqiPet.getArtworkSource);
 
   const characterId = useRef("caramel");
   const quietMode = useRef(false);
@@ -48,6 +63,9 @@ export function PetApp() {
     let visualKind = kind;
     if (kind === "tap" && characterId.current === "penguin-idle") {
       const tapMotions: PetReaction[] = ["look", "waddle", "tap"];
+      visualKind = tapMotions[tapIndex.current % tapMotions.length];
+    } else if (kind === "tap" && characterId.current === "gugugaga-idle") {
+      const tapMotions: PetReaction[] = ["look", "tap", "play"];
       visualKind = tapMotions[tapIndex.current % tapMotions.length];
     }
     if (kind === "tap") tapIndex.current++;
@@ -116,6 +134,7 @@ export function PetApp() {
     if (!state || state.quietMode || state.focusActive || !visible) return;
     // One idle timer owns spontaneous actions; user interaction restarts it.
     const penguin = characterId.current === "penguin-idle";
+    const gugugaga = characterId.current === "gugugaga-idle";
     const timer = window.setTimeout(() => {
       if (motionRef.current === "walk") {
         setIdleCycle((value) => value + 1);
@@ -123,9 +142,15 @@ export function PetApp() {
       }
       const actions: PetReaction[] = penguin
         ? ["look", "waddle", "slide", "look", "waddle", "nap"]
-        : ["nap", "nap", "play"];
+        : gugugaga
+          ? ["look", "play", "nap", "look", "tap"]
+          : ["nap", "nap", "play"];
       react(actions[Math.floor(Math.random() * actions.length)], false);
-    }, penguin ? 18000 + Math.random() * 18000 : 45000 + Math.random() * 45000);
+    }, penguin
+      ? 18000 + Math.random() * 18000
+      : gugugaga
+        ? 24000 + Math.random() * 18000
+        : 45000 + Math.random() * 45000);
     return () => clearTimeout(timer);
   }, [state, visible, idleCycle, react]);
 

@@ -46,6 +46,8 @@ site/                   静态下载官网，发布时复制 GIF 与图标
 scripts/
   render-cat-gifs.py    从原始参考图生成猫咪 GIF/WebM 与应用图标
   render-friend-gifs.py 程序化生成五位动物伙伴的 GIF/WebM
+  render-gugugaga-gifs.py 从 3×3 逐帧表批量生成咕咕嘎嘎九套肢体动作 GIF/WebM
+  render-brand-icons.py 从咕咕嘎嘎头像生成应用与安装包图标
   render-pet-from-image.py 把任意插画抠图并生成 GIF/WebM
   pet_animation.py      RGBA 帧序列 → 透明 WebM 的公共编码逻辑
 tests/

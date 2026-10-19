@@ -169,8 +169,8 @@ export function MarketApp() {
       <header className="hero">
         <div className="hero-copy">
           <span className="eyebrow">TAOQI PET MARKET</span>
-          <h1>十三种小伙伴，今天是哪一只？</h1>
-          <p>打工猫天团加上五位动物伙伴，也欢迎带自己的图片来。</p>
+          <h1>八位小伙伴，今天是哪一只？</h1>
+          <p>企鹅、咕咕嘎嘎和六位动物伙伴，也欢迎带自己的图片来。</p>
           <span className="free-badge">全部免费 · 无账号 · 无付费解锁</span>
         </div>
         <div className="hero-actions">

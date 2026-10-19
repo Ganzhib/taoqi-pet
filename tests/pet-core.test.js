@@ -34,14 +34,21 @@ test("toolbox address carries only fixed source parameters", () => {
   assert.deepEqual([...url.searchParams.keys()], ["utm_source", "utm_medium", "utm_content"]);
 });
 
-test("企鹅是默认角色，内置目录只保留一只猫", () => {
-  assert.equal(DEFAULT_CHARACTER_ID, "penguin-idle");
+test("咕咕嘎嘎是默认角色，内置目录只保留一只猫", () => {
+  assert.equal(DEFAULT_CHARACTER_ID, "gugugaga-idle");
   assert.equal(CHARACTERS[0].id, DEFAULT_CHARACTER_ID);
   assert.deepEqual(CHARACTERS.filter((character) => character.id.startsWith("cat-"))
     .map((character) => character.id), ["cat-idle"]);
 });
 
-test("已下架角色和无效选择迁移到企鹅，自定义角色保持不变", () => {
+test("咕咕嘎嘎作为免费内置角色进入市场", () => {
+  const character = CHARACTERS.find((item) => item.id === "gugugaga-idle");
+  assert.ok(character);
+  assert.equal(character.name, "咕咕嘎嘎");
+  assert.equal(character.category, "沙雕日常");
+});
+
+test("已下架角色和无效选择迁移到咕咕嘎嘎，自定义角色保持不变", () => {
   assert.equal(resolveCharacterId("cat-study"), DEFAULT_CHARACTER_ID);
   assert.equal(resolveCharacterId("not-a-pet"), DEFAULT_CHARACTER_ID);
   const custom = { id: "custom-12345678-1234-1234-1234-123456789abc" };

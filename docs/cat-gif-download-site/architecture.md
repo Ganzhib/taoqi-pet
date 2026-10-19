@@ -4,7 +4,7 @@
 
 `assets/source/catbuddy-reference.png` 保存所有者提供的橘白猫原始透明图。可重复运行的 `scripts/render-cat-gifs.py` 用 Pillow 输出 280×320 的循环 GIF/WebM 以及 PNG、ICO、ICNS 图标；以原图为唯一猫身，不重新生成肢体。`scripts/render-friend-gifs.py` 输出企鹅、小奶猫、打工狗、泡泡龙、蹦蹦兔和云朵团子素材。
 
-`pet-core.js` 保存 7 位当前内置角色元数据，默认角色为 `penguin-idle`。桌宠、市场和小窝通过统一的受控素材协议读取 GIF/WebM；用户上传接受 PNG/JPG/GIF/WebP，生成角色保存为 SVG。旧设置中的已下架角色 ID 由设置存储迁移到当前默认角色。
+`pet-core.js` 保存 8 位当前内置角色元数据，默认角色为 `gugugaga-idle`。桌宠、市场和小窝通过统一的受控素材协议读取 GIF/WebM；用户上传接受 PNG/JPG/GIF/WebP，生成角色保存为 SVG。旧设置中的已下架角色 ID 由设置存储迁移到当前默认角色。
 
 置顶操作由主进程单一函数负责：Windows/macOS 设定高窗口层级，macOS 追加所有空间和全屏可见选项。菜单切换和首次窗口创建共用该函数；窗口隐藏、显示和退出保持原有生命周期。
 
@@ -16,7 +16,8 @@
 
 `site/` 只有 HTML/CSS/JS，页面不请求自有服务。官网按照“可自定义定位 → 角色阵容 → 三种获得角色的方式 → 系统下载”组织信息：
 
-- 首屏默认展示 `penguin-idle.gif`，标题与说明不绑定具体动物。
+- 首屏默认展示 `gugugaga-idle.gif`，标题与说明以咕咕嘎嘎为项目主品牌。
+- 导航品牌位使用 `assets/brand/gugugaga-avatar.png` 头部头像，不把全身素材缩成商标。
 - 角色阵容使用 7 张可点击卡片，通过 `data-image`、`data-symbol` 和 `data-caption` 驱动同一个预览区域；橘白猫与其他角色同级。
 - 第 8 张静态卡片表示“导入或捏宠”，不伪装成官网可执行的上传入口。
 - 品牌区域用纯 HTML/CSS 字标，避免应用的动物图标成为官网唯一品牌形象。
@@ -28,7 +29,7 @@
 
 GitHub Actions 在 Windows/macOS 构建未签名安装包并发布 Release。下载官网由本仓库的 `.github/workflows/deploy-pages.yml` 自动发布 GitHub Pages；`.github/workflows/deploy-site.yml` 负责独立域名的手动部署。
 
-独立域名工作流用本仓库 `production` 环境的专用 `SITE_SSH_PRIVATE_KEY` 与 `SITE_SSH_KNOWN_HOSTS` 登录既有服务器；打包后的站点放在 `/var/www/taoqi-pet/releases/<commit>`，原子切换 `current` 符号链接。独立的 `pet.ganzhibin.icu` Nginx 虚拟主机提供静态文件，Certbot 使用 webroot 申请 HTTPS 证书。部署后验证首页包含“淘气桌宠”，并下载 `penguin-idle.gif` 检查 GIF89a 文件头。工作流不依赖其他项目仓库或其密钥。
+独立域名工作流用本仓库 `production` 环境的专用 `SITE_SSH_PRIVATE_KEY` 与 `SITE_SSH_KNOWN_HOSTS` 登录既有服务器；打包后的站点放在 `/var/www/taoqi-pet/releases/<commit>`，原子切换 `current` 符号链接。独立的 `pet.ganzhibin.icu` Nginx 虚拟主机提供静态文件，Certbot 使用 webroot 申请 HTTPS 证书。部署后验证首页包含“淘气桌宠”，并下载 `gugugaga-idle.gif` 检查 GIF89a 文件头。工作流不依赖其他项目仓库或其密钥。
 
 ## 图标完整性校验
 

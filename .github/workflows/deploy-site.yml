@@ -33,7 +33,8 @@ jobs:
           mkdir -p "$RUNNER_TEMP/taoqi-site/media"
           cp site/index.html site/styles.css site/main.js "$RUNNER_TEMP/taoqi-site/"
           cp assets/pets/*-idle.gif "$RUNNER_TEMP/taoqi-site/media/"
-          test "$(find "$RUNNER_TEMP/taoqi-site/media" -name '*-idle.gif' | wc -l)" -eq 7
+          cp assets/brand/gugugaga-avatar.png "$RUNNER_TEMP/taoqi-site/media/"
+          test "$(find "$RUNNER_TEMP/taoqi-site/media" -name '*-idle.gif' | wc -l)" -eq 8
           tar -C "$RUNNER_TEMP/taoqi-site" -czf "$RUNNER_TEMP/taoqi-site.tar.gz" .
 
       - name: Configure independent SSH key
@@ -121,6 +122,6 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error https://pet.ganzhibin.icu/ -o "$RUNNER_TEMP/index.html"
           grep -q '淘气桌宠' "$RUNNER_TEMP/index.html"
-          curl --fail --silent --show-error https://pet.ganzhibin.icu/media/penguin-idle.gif \
-            -o "$RUNNER_TEMP/penguin-idle.gif"
-          test "$(head -c 6 "$RUNNER_TEMP/penguin-idle.gif")" = GIF89a
+          curl --fail --silent --show-error https://pet.ganzhibin.icu/media/gugugaga-idle.gif \
+            -o "$RUNNER_TEMP/gugugaga-idle.gif"
+          test "$(head -c 6 "$RUNNER_TEMP/gugugaga-idle.gif")" = GIF89a

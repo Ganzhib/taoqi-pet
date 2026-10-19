@@ -29,15 +29,14 @@ img { max-width: 100%; }
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 900; font-size: 20px; text-decoration: none; white-space: nowrap; }
 .brand-mark {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 42px;
   height: 42px;
   border: 2px solid #382a29;
   border-radius: 13px;
-  background: #ffca79;
+  background: #fff4df;
   box-shadow: 3px 3px 0 #382a29;
-  font-size: 18px;
+  object-fit: cover;
 }
 .topbar nav { display: flex; align-items: center; gap: 32px; }
 .topbar nav a, .nav-download { font-size: 13px; font-weight: 700; text-decoration: none; }

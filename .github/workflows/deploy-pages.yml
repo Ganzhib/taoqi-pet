@@ -6,6 +6,7 @@ on:
     paths:
       - site/**
       - assets/pets/**
+      - assets/brand/**
       - .github/workflows/deploy-pages.yml
   workflow_dispatch:
 
@@ -31,7 +32,8 @@ jobs:
           mkdir -p _site/media
           cp site/index.html site/styles.css site/main.js _site/
           cp assets/pets/*-idle.gif _site/media/
-          test "$(find _site/media -name '*-idle.gif' | wc -l)" -eq 7
+          cp assets/brand/gugugaga-avatar.png _site/media/
+          test "$(find _site/media -name '*-idle.gif' | wc -l)" -eq 8
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

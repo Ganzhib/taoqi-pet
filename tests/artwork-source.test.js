@@ -46,6 +46,21 @@ test("内置角色带管线约定的帧参数", () => {
   assert.equal(source.frameDelayMs, PIPELINE.frameDelayMs);
 });
 
+test("咕咕嘎嘎的换装和动作变体沿用内置素材管线", () => {
+  const character = CHARACTERS.find((item) => item.id === "gugugaga-idle");
+  assert.ok(character);
+  assert.equal(character.variants.length, 8);
+  for (const id of character.variants) {
+    const source = resolveArtworkSource(id, contextWith([], {}));
+    assert.ok(source, id + " 缺少素材");
+    assert.equal(source.kind, "video", id);
+    assert.equal(source.url, "pet://pets/" + id + ".webm");
+    const fallback = resolveImageSource(id, contextWith([], {}));
+    assert.equal(fallback.kind, "gif", id);
+    assert.equal(fallback.url, "pet://pets/" + id + ".gif");
+  }
+});
+
 test("未注册角色返回 null", () => {
   assert.equal(resolveArtworkSource("not-a-pet", contextWith([], {})), null);
 });

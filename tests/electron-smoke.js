@@ -101,12 +101,17 @@ async function run() {
     pet.on("pageerror", (error) => pageErrors.push("pet: " + error.message));
     await pet.locator("#pet-art").waitFor();
     await waitForArtwork(pet, "首屏桌宠素材");
-    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "penguin-idle");
+    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "gugugaga-idle");
+    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith(
+      "pet://pets/gugugaga-idle.webm"), "首屏应播放咕咕嘎嘎逐帧挥手 WebM");
 
     assert.equal(await pet.title(), "淘气桌宠");
     assert.equal(await application.evaluate(({ BrowserWindow }) =>
       BrowserWindow.getAllWindows()[0].isAlwaysOnTop()), true);
     await pet.locator("#pet").click();
+    await pet.waitForFunction(() => document.getElementById("pet-art").src.startsWith(
+      "pet://pets/gugugaga-daydream.webm"), undefined, { timeout: 1000 });
+    await waitForArtwork(pet, "咕咕嘎嘎托腮动作素材");
     await pet.locator("#bubble.visible").waitFor();
     assert.ok(await pet.locator("#bubble").textContent());
     const bubbleGap = await pet.evaluate(() => {
@@ -123,7 +128,7 @@ async function run() {
     market.on("pageerror", (error) => pageErrors.push("market: " + error.message));
     await market.locator(".pet-card").first().waitFor();
     assert.equal(await market.title(), "淘气宠物市场");
-    assert.equal(await market.locator(".pet-card").count(), 7);
+    assert.equal(await market.locator(".pet-card").count(), 8);
 
     await market.locator(".pet-card").filter({ hasText: "发呆猫" })
       .getByRole("button", { name: "选它陪伴" }).click();
@@ -180,7 +185,7 @@ async function run() {
     });
     await market.getByRole("button", { name: "删除测试伙伴" }).click();
     await market.locator(".empty").waitFor();
-    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "penguin-idle");
+    await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "gugugaga-idle");
 
     await market.close();
     const homeOpened = application.waitForEvent("window");

@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#fff4df" />
-  <meta name="description" content="淘气桌宠：把喜欢的角色放到桌面。可选免费内置伙伴、导入自己的图片，也能亲手捏一个专属桌宠；离线使用、无需登录。" />
-  <title>淘气桌宠 · 你的桌面伙伴由你决定</title>
+  <meta name="description" content="淘气桌宠：咕咕嘎嘎住进桌面，会换装、卖萌、打盹和陪你工作；另有免费伙伴、自定义导入与捏宠。离线使用、无需登录。" />
+  <title>淘气桌宠 · 咕咕嘎嘎住进你的桌面</title>
   <link rel="stylesheet" href="./styles.css" />
   <script defer src="./main.js"></script>
 </head>
@@ -13,7 +13,7 @@
   <a class="skip-link" href="#main">跳到正文</a>
   <header class="topbar">
     <a class="brand" href="#" aria-label="淘气桌宠首页">
-      <span class="brand-mark" aria-hidden="true">淘</span>
+      <img class="brand-mark" src="./media/gugugaga-avatar.png" alt="" width="42" height="42" />
       <span>淘气桌宠</span>
     </a>
     <nav aria-label="主导航">
@@ -28,8 +28,8 @@
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
         <div class="eyebrow"><span class="status-dot"></span> 免费、离线、无需登录</div>
-        <h1 id="hero-title">你的桌面，<br /><em>住谁都可以。</em></h1>
-        <p class="hero-lede">从免费伙伴中挑一个，导入你喜欢的图片，或者亲手捏出独一无二的角色。桌宠长什么样、叫什么名字，都由你决定。</p>
+        <h1 id="hero-title">咕咕嘎嘎，<br /><em>住进你的桌面。</em></h1>
+        <p class="hero-lede">会背书包、戴帽子、换睡衣，也会托腮发呆和认真卖萌。咕咕嘎嘎是默认主角，其他免费伙伴、自定义导入和捏宠也都保留。</p>
         <div class="hero-actions">
           <a class="button primary" href="#download">下载正式版 <span aria-hidden="true">↗</span></a>
           <a class="button secondary" href="#pets">认识这些伙伴 <span aria-hidden="true">↓</span></a>
@@ -45,10 +45,10 @@
             <div class="fake-folder folder-one" aria-hidden="true"></div>
             <div class="fake-folder folder-two" aria-hidden="true"></div>
             <div class="hero-pet-art">
-              <img id="hero-pet" src="./media/penguin-idle.gif" alt="企鹅正在桌面上陪伴" width="280" height="320" />
-              <span id="hero-symbol" class="pet-symbol hero-symbol" aria-hidden="true">企</span>
+              <img id="hero-pet" src="./media/gugugaga-idle.gif" alt="咕咕嘎嘎正在桌面上陪伴" width="280" height="320" />
+              <span id="hero-symbol" class="pet-symbol hero-symbol" aria-hidden="true">嘎</span>
             </div>
-            <div id="hero-caption" class="speech-bubble" aria-live="polite">今天也一起慢慢来。</div>
+            <div id="hero-caption" class="speech-bubble" aria-live="polite">书包背好，今天也来陪你。</div>
           </div>
         </div>
         <div class="hero-sticker" aria-hidden="true">选一个<br />也能做一个</div>
@@ -61,11 +61,12 @@
 
     <section id="pets" class="states wrap" aria-labelledby="pets-title">
       <div class="section-head">
-        <div><span class="section-index">01 / 桌宠阵容</span><h2 id="pets-title">不是固定主角，<br />是你的选择。</h2></div>
-        <p>企鹅、猫咪、小狗、小龙、兔子和团子都可以住进桌面。点一张卡片，试试谁和你更合拍。</p>
+        <div><span class="section-index">01 / 桌宠阵容</span><h2 id="pets-title">咕咕嘎嘎是主角，<br />伙伴也任你选择。</h2></div>
+        <p>咕咕嘎嘎默认入住桌面；企鹅、猫咪、小狗、小龙、兔子和团子也都可以随时切换。</p>
       </div>
       <div class="state-grid">
-        <button class="state-card is-active" type="button" data-pet="penguin" data-image="penguin-idle.gif" data-symbol="企" data-caption="今天也一起慢慢来。" aria-pressed="true"><span class="pet-art"><img src="./media/penguin-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">企</span></span><span class="state-meta"><strong>企鹅队长</strong><small>默认伙伴</small></span></button>
+        <button class="state-card is-active" type="button" data-pet="gugugaga" data-image="gugugaga-idle.gif" data-symbol="嘎" data-caption="书包背好，今天也来陪你。" aria-pressed="true"><span class="pet-art"><img src="./media/gugugaga-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">嘎</span></span><span class="state-meta"><strong>咕咕嘎嘎</strong><small>默认主角</small></span></button>
+        <button class="state-card" type="button" data-pet="penguin" data-image="penguin-idle.gif" data-symbol="企" data-caption="今天也一起慢慢来。" aria-pressed="false"><span class="pet-art"><img src="./media/penguin-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">企</span></span><span class="state-meta"><strong>企鹅队长</strong><small>滑行伙伴</small></span></button>
         <button class="state-card" type="button" data-pet="kitty" data-image="kitty-idle.gif" data-symbol="喵" data-caption="小小一只，也能装下好心情。" aria-pressed="false"><span class="pet-art"><img src="./media/kitty-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">喵</span></span><span class="state-meta"><strong>小奶猫</strong><small>软乎乎</small></span></button>
         <button class="state-card" type="button" data-pet="doggy" data-image="doggy-idle.gif" data-symbol="汪" data-caption="开工！我负责在旁边加油。" aria-pressed="false"><span class="pet-art"><img src="./media/doggy-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">汪</span></span><span class="state-meta"><strong>打工狗</strong><small>元气搭档</small></span></button>
         <button class="state-card" type="button" data-pet="dragon" data-image="dragon-idle.gif" data-symbol="龙" data-caption="今天的灵感，会不会喷火？" aria-pressed="false"><span class="pet-art"><img src="./media/dragon-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">龙</span></span><span class="state-meta"><strong>泡泡龙</strong><small>脑洞担当</small></span></button>
@@ -74,14 +75,14 @@
         <button class="state-card" type="button" data-pet="cat" data-image="cat-idle.gif" data-symbol="橘" data-caption="发一会儿呆，也算认真生活。" aria-pressed="false"><span class="pet-art"><img src="./media/cat-idle.gif" alt="" loading="lazy" /><span class="pet-symbol" aria-hidden="true">橘</span></span><span class="state-meta"><strong>橘白猫</strong><small>经典伙伴</small></span></button>
         <div class="state-card custom-card" aria-label="自定义桌宠方式"><span class="custom-plus" aria-hidden="true">＋</span><span class="state-meta"><strong>你的那一只</strong><small>导入或捏宠</small></span></div>
       </div>
-      <p class="state-note">7 位内置伙伴全部免费。你导入或创作的角色保存在本机，不会被静默上传。</p>
+      <p class="state-note">8 位内置伙伴全部免费。你导入或创作的角色保存在本机，不会被静默上传。</p>
     </section>
 
     <section id="features" class="features">
       <div class="wrap feature-layout">
         <div class="feature-intro"><span class="section-index">02 / 自由定制</span><h2>从“有一只”，<br />到“就是这一只”。</h2><p>不需要会画画，也不必接受固定角色。先从现成伙伴开始，随时换成真正属于你的桌宠。</p></div>
         <div class="feature-list">
-          <article><span class="feature-num">01</span><div><h3>挑选免费伙伴</h3><p>在宠物市场自由切换 7 位内置角色，没有付费角色、抽卡或订阅。</p></div></article>
+          <article><span class="feature-num">01</span><div><h3>挑选免费伙伴</h3><p>咕咕嘎嘎默认陪伴，也可以在宠物市场自由切换 8 位内置角色；没有付费角色、抽卡或订阅。</p></div></article>
           <article><span class="feature-num">02</span><div><h3>导入自己的图片</h3><p>支持 PNG、JPG、GIF、WebP；静态图片会自动抠出主体，素材仅保存在本机。</p></div></article>
           <article><span class="feature-num">03</span><div><h3>亲手捏一个角色</h3><p>组合造型、颜色和表情，实时预览后保存，还能给新伙伴取自己的名字。</p></div></article>
           <article><span class="feature-num">04</span><div><h3>按你的节奏陪伴</h3><p>拖动、互动、置顶、专注或安静待着；自主活动随时可暂停。</p></div></article>
