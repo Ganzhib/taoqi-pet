@@ -7,7 +7,7 @@ const { TOOLBOX_URL, CHARACTERS, DECORATIONS, HOME_THEMES, HOME_FURNITURE, detec
 const { DEFAULT_SETTINGS, FOCUS_DURATION_MS, customPetPath, readSettings, saveSettings } = require("./settings-store");
 const { renderPetSvg } = require("./character-generator");
 const { cutoutStaticImage } = require("./cutout");
-const { resolveArtworkSource, resolveFallbackSource } = require("./animation/artwork-source");
+const { resolveArtworkSource, resolveImageSource } = require("./animation/artwork-source");
 const { registerPetScheme, registerPetProtocol } = require("./animation/protocol");
 const { createUpdateManager } = require("./update-manager");
 
@@ -206,14 +206,10 @@ function getArtworkSource(id) {
   return resolveArtworkSource(id, artworkContext());
 }
 
+// 给 <img> 用的图片素材（市场缩略图、小窝页面、桌宠降级）。
+// 必须是图片而不是 WebM——<img> 解不了视频。
 function getArtwork(id) {
-  const source = getArtworkSource(id);
-  return source ? source.url : null;
-}
-
-// 视频解码失败时的降级素材：跳过 webm，取 GIF
-function getFallbackArtwork(id) {
-  const source = resolveFallbackSource(id, artworkContext());
+  const source = resolveImageSource(id, artworkContext());
   return source ? source.url : null;
 }
 
@@ -628,7 +624,6 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle("pet:get-state", () => ({ ...settings, focusActive: isFocusActive() }));
     ipcMain.handle("pet:get-artwork", (_event, id) => getArtwork(id));
     ipcMain.handle("pet:get-artwork-source", (_event, id) => getArtworkSource(id));
-    ipcMain.handle("pet:get-fallback-artwork", (_event, id) => getFallbackArtwork(id));
     ipcMain.handle("market:get-catalog", getCatalog);
     ipcMain.handle("market:select", (_event, id) => selectCharacter(id));
     ipcMain.handle("market:artwork", (_event, id) => getArtwork(id));

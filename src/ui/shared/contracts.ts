@@ -57,10 +57,10 @@ export interface HomeState {
 
 interface PetBridge {
   getState(): Promise<PetState>;
-  getArtwork(id: string): Promise<string | null>;
+  // 主素材，内置角色是透明 WebM
   getArtworkSource(id: string): Promise<ArtworkSource | null>;
-  // 视频解码失败时的降级素材（跳过 webm 的 GIF）
-  getFallbackArtwork(id: string): Promise<string | null>;
+  // 图片素材（GIF），供 <img> 使用与视频解码失败时降级
+  getArtwork(id: string): Promise<string | null>;
   showMenu(): void;
   openMarket(): void;
   openHome(): void;

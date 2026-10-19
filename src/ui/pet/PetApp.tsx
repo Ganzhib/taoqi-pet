@@ -192,7 +192,7 @@ export function PetApp() {
         onContextMenu={(event) => { event.preventDefault(); window.taoqiPet.showMenu(); }}
         onKeyDown={onKeyDown}>
         <ArtworkPlayer className="pet-art" playKey={reaction.version} source={artwork}
-          loadFallback={window.taoqiPet.getFallbackArtwork} />
+          loadFallback={window.taoqiPet.getArtwork} />
         <div className="accessory" aria-hidden="true" />
       </div>
       <div className={"hint" + (hintHidden ? " hidden" : "")}>拖动我 · M 市场 · H 小窝</div>

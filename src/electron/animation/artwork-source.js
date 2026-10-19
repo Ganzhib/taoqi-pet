@@ -130,12 +130,15 @@ function resolveArtworkSource(id, options = {}) {
   return null;
 }
 
-// 降级源：显式排掉 video 分支。
+// 图片源：显式排掉 video 分支，只给 <img> 能解码的素材。
 //
-// 视频解码失败时不能直接复用 resolveArtworkSource——它同样优先 webm，
-// 拿回来的还是同一个视频地址，交给 <img> 永远解不出来（naturalWidth 恒为 0）。
-// 降级必须真的降级到动图。
-function resolveFallbackSource(id, options = {}) {
+// 两处都要用：
+//   1. 市场缩略图、小窝页面——它们就是 <img>，拿到 webm 只会 naturalWidth 恒为 0
+//   2. 桌宠视频解码失败时的降级
+//
+// 关键是别复用 resolveArtworkSource：它同样优先 webm，拿回来的还是同一个
+// 视频地址，等于没降级。
+function resolveImageSource(id, options = {}) {
   if (typeof id !== "string" || id.length === 0) return null;
   const characters = Array.isArray(options.characters) ? options.characters : [];
   const character = characters.find((pet) => pet.id === id);
@@ -155,6 +158,6 @@ module.exports = {
   petsRoot,
   petUrl,
   resolveArtworkSource,
-  resolveFallbackSource,
+  resolveImageSource,
   cachedEntryCount,
 };
