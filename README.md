@@ -43,13 +43,13 @@
 
     npm run dist
 
-也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。当前可访问的[下载官网](https://ganzhib.github.io/taoqi-pet/)以可自定义桌宠为主线，桌面应用提供 8 位免费内置伙伴、本地图片导入与可视化捏宠；独立域名 `pet.ganzhibin.icu` 待服务器部署完成后启用。
+也可在 GitHub Actions 的 “Build desktop packages” 运行记录中下载 Windows 和 macOS 的测试构建。当前可访问的[下载官网](https://ganzhib.github.io/taoqi-pet/)以咕咕嘎嘎和可自定义桌宠为主线，桌面应用提供 8 位免费内置伙伴、本地图片导入与可视化捏宠；独立域名为 `pet.ganzhibin.icu`。
 
 产品定位、技术设计与后续任务见[产品与技术规划](docs/product-technical-plan.md)。新增页面和角色时请遵循[代码结构与命名约定](docs/code-structure.md)。
 
 ## 发布状态
 
-[v0.3.2](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.2) 是当前正式版：默认使用企鹅，内置角色精简为七位，并加入原地陪伴、自由散步和跟随鼠标三种模式；同时修复正式版误跟随 preview 更新通道的问题。v0.3.0 与 v0.3.1 的正式安装版需要手动安装一次 v0.3.2 或之后的正式版才能切回正式渠道。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
+[v0.4.0](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.4.0) 是当前正式版：咕咕嘎嘎成为默认桌宠和项目主品牌，提供挥手、走路、伸懒腰、蹦跳、喝饮料、鞠躬、晃脚与猫爪蹲跳等九套逐帧肢体动作；应用与官网改用头肩头像作为品牌标记，市场保留 8 位免费伙伴。v0.3.0 与 v0.3.1 的正式安装版需要手动安装一次 v0.3.2 或之后的正式版才能切回正式渠道。macOS 尚未公证，两个平台都可能出现系统安全提示。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
 
 更新机制的适用范围和发布流程见[自动更新设计](docs/auto-update/requirements.md)。本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
 
