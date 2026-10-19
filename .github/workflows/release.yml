@@ -1,0 +1,81 @@
+name: Publish stable release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: taoqi-pet-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v0.3.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare draft release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
+          else
+            gh release create "$TAG" --draft --target "$GITHUB_SHA" \
+              --title "淘气桌宠 v0.3.0" \
+              --notes-file docs/releases/v0.3.0.md
+          fi
+
+  package:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+    runs-on: ${{ matrix.os }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run check
+      - run: npm test
+      - run: npm run build:ui
+      - name: Build and upload release assets
+        run: npx electron-builder --${{ matrix.platform }} --publish always
+
+  publish:
+    needs: package
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v0.3.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify update manifests and publish release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "$TAG" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'preview.yml' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'preview-mac.yml' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-setup-0.3.0-win-x64.exe' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-portable-0.3.0-win-x64.exe' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-0.3.0-mac-arm64.dmg' "$RUNNER_TEMP/assets.txt"
+          grep -Fx 'taoqi-pet-0.3.0-mac-x64.dmg' "$RUNNER_TEMP/assets.txt"
+          gh release edit "$TAG" --draft=false \
+            --title "淘气桌宠 v0.3.0" \
+            --notes-file docs/releases/v0.3.0.md
