@@ -140,7 +140,13 @@ export function MarketApp() {
       const imported = await window.petMarket.importPet();
       if (imported) {
         setCategory("我的创作");
-        setNotice(imported.cutout ? "已自动抠图，只留下宠物主体。" : "没有检测到明显的背景，已按原图导入。");
+        if (imported.animated) {
+          setNotice("已保留素材原有动画，可以直接作为桌宠使用。");
+        } else if (imported.cutout) {
+          setNotice("已自动抠图，只留下宠物主体。");
+        } else {
+          setNotice("没有检测到明显的背景，已按原图导入。");
+        }
         await refresh();
       }
       setError("");
@@ -202,7 +208,7 @@ export function MarketApp() {
           )}
         </section>
       </main>
-      <footer>导入 PNG、JPG、GIF 或 WebP 图片，单张不超过 5 MB；静态图片导入时自动抠图。图片只保存在这台电脑上。</footer>
+      <footer>导入 PNG、APNG、JPG、GIF 或 WebP 图片，单张不超过 5 MB；动图保留原动画，静态图自动抠图。图片只保存在这台电脑上。</footer>
     </>
   );
 }

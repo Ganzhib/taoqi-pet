@@ -10,6 +10,7 @@ const {
   CHARACTERS,
   MOVEMENT_MODES,
   detectImageType,
+  isAnimatedImage,
   isValidCustomPet,
   resolveCharacterId,
   resolveMovementMode,
@@ -102,6 +103,29 @@ test("custom imports accept supported raster signatures and reject SVG", () => {
   assert.equal(detectImageType(Buffer.from("GIF89a", "ascii")).extension, "gif");
   assert.equal(detectImageType(Buffer.from("RIFF0000WEBP", "ascii")).extension, "webp");
   assert.equal(detectImageType(Buffer.from("<svg></svg>", "utf8")), null);
+});
+
+test("animated PNG and WebP keep their frames instead of entering static cutout", () => {
+  const pngSignature = Buffer.from("89504e470d0a1a0a", "hex");
+  const pngChunk = (name) => Buffer.concat([
+    Buffer.alloc(4), Buffer.from(name, "ascii"), Buffer.alloc(4),
+  ]);
+  const animatedPng = Buffer.concat([pngSignature, pngChunk("acTL"), pngChunk("IDAT")]);
+  const staticPng = Buffer.concat([pngSignature, pngChunk("IDAT")]);
+  const lateAnimationChunk = Buffer.concat([staticPng, pngChunk("acTL")]);
+  assert.equal(isAnimatedImage(animatedPng, detectImageType(animatedPng)), true);
+  assert.equal(isAnimatedImage(staticPng, detectImageType(staticPng)), false);
+  assert.equal(isAnimatedImage(lateAnimationChunk, detectImageType(lateAnimationChunk)), false);
+
+  const webp = Buffer.concat([
+    Buffer.from("RIFF0000WEBPVP8X", "ascii"), Buffer.from([10, 0, 0, 0, 0x02]),
+  ]);
+  const staticWebp = Buffer.from(webp);
+  staticWebp[20] = 0;
+  assert.equal(isAnimatedImage(webp, detectImageType(webp)), true);
+  assert.equal(isAnimatedImage(staticWebp, detectImageType(staticWebp)), false);
+  assert.equal(isAnimatedImage(Buffer.from("GIF89a", "ascii"),
+    detectImageType(Buffer.from("GIF89a", "ascii"))), true);
 });
 
 test("saved custom pet IDs cannot address paths outside the pet directory", () => {

@@ -73,6 +73,28 @@ function detectImageType(bytes) {
   return IMAGE_TYPES.find((type) => type.matches(bytes)) || null;
 }
 
+function isAnimatedImage(bytes, type) {
+  if (type.extension === "gif") return true;
+  if (type.extension === "webp") {
+    // VP8X 的动画标志位表示后续 ANIM/ANMF 帧，应保留原文件。
+    return bytes.length >= 21 && bytes.toString("ascii", 12, 16) === "VP8X" &&
+      (bytes[20] & 0x02) !== 0;
+  }
+  if (type.extension !== "png") return false;
+
+  // APNG 的 acTL 必须出现在首个 IDAT 前；按 PNG 块边界查找，避免误读像素内容。
+  for (let offset = 8; offset + 12 <= bytes.length;) {
+    const length = bytes.readUInt32BE(offset);
+    const next = offset + 12 + length;
+    if (next > bytes.length) return false;
+    const chunk = bytes.toString("ascii", offset + 4, offset + 8);
+    if (chunk === "acTL") return true;
+    if (chunk === "IDAT") return false;
+    offset = next;
+  }
+  return false;
+}
+
 function isValidCustomPet(pet) {
   return pet && /^custom-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(pet.id) &&
     typeof pet.name === "string" && pet.name.trim().length > 0 &&
@@ -132,6 +154,7 @@ module.exports = {
   HOME_FURNITURE,
   IMAGE_TYPES,
   detectImageType,
+  isAnimatedImage,
   isValidCustomPet,
   resolveCharacterId,
   resolveMovementMode,

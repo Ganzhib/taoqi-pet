@@ -11,6 +11,7 @@ const {
   HOME_THEMES,
   HOME_FURNITURE,
   detectImageType,
+  isAnimatedImage,
   clampToWorkArea,
   nextFollowBounds,
 } = require("./pet-core");
@@ -283,7 +284,7 @@ function selectCharacter(id) {
 async function importCustomPet() {
   const result = await dialog.showOpenDialog(marketWindow, {
     title: "导入我的宠物",
-    filters: [{ name: "图片", extensions: ["png", "jpg", "jpeg", "gif", "webp"] }],
+    filters: [{ name: "图片", extensions: ["png", "apng", "jpg", "jpeg", "gif", "webp"] }],
     properties: ["openFile"],
   });
   if (result.canceled) return null;
@@ -293,8 +294,9 @@ async function importCustomPet() {
   }
   const bytes = fs.readFileSync(source);
   const type = detectImageType(bytes);
-  if (!type) throw new Error("请选择 PNG、JPG、GIF 或 WebP 图片。");
-  const cut = type.extension === "gif" ? null : cutoutStaticImage(bytes);
+  if (!type) throw new Error("请选择 PNG、APNG、JPG、GIF 或 WebP 图片。");
+  const animated = isAnimatedImage(bytes, type);
+  const cut = animated ? null : cutoutStaticImage(bytes);
   const pet = {
     id: "custom-" + randomUUID(),
     name: path.parse(source).name.trim().slice(0, 32) || "我的宠物",
@@ -308,7 +310,7 @@ async function importCustomPet() {
   sendState();
   notifyMarket();
   notifyHome();
-  return { id: pet.id, cutout: Boolean(cut) };
+  return { id: pet.id, cutout: Boolean(cut), animated };
 }
 
 function createGeneratedPet(options) {

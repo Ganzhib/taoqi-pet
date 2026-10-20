@@ -4,10 +4,19 @@ const os = require("node:os");
 const path = require("node:path");
 const { _electron: electron } = require("playwright");
 
+// Pillow 生成的两帧样本：白色边框包着红/绿主体。若被静态抠图，会只剩首帧。
+const ANIMATED_IMPORTS = [
+  ["animated.png", "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAACGFjVEwAAAACAAAAAPONk3AAAAAaZmNUTAAAAAAAAAAFAAAABQAAAAAAAAAAAGQD6AAA0GoLTAAAACVJREFUeJxj/P///38GNMACJhkZESL//zMwoasCAayCEO1oxgIAO8cICLoDUD4AAAAaZmNUTAAAAAEAAAADAAAAAwAAAAEAAAABAGQD6AAAk8bqDQAAABhmZEFUAAAAAnicY2T4z/CfAQqYYAwMDgBIVAIEb4O2xgAAAABJRU5ErkJggg==", "image/png"],
+  ["animated.webp", "UklGRowAAABXRUJQVlA4WAoAAAASAAAABAAABAAAQU5JTQYAAAAAAAAAAABBTk1GLgAAAAAAAAAAAAQAAAQAAGQAAAJWUDhMFQAAAC8EAAEADzD/8z//8x9aeMRHRP8jAgBBTk1GKgAAAAAAAAAAAAMAAAMAAGQAAABWUDhMEQAAAC8DwAAQDzD/EfMfjHGI6H84AA==", "image/webp"],
+];
+
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "taoqi-smoke-"));
 const profileData = path.join(profile, "taoqi-pet");
 fs.mkdirSync(profileData, { recursive: true });
 fs.writeFileSync(path.join(profileData, "settings.json"), JSON.stringify({ scale: 1.5 }));
+for (const [fileName, encoded] of ANIMATED_IMPORTS) {
+  fs.writeFileSync(path.join(profile, fileName), Buffer.from(encoded, "base64"));
+}
 
 // 等桌宠素材真正可显示：视频要求解出首帧，图片要求解码完成。
 // 失败时把播放器的内部状态一起抛出来，否则 CI 只能看到一句 timeout。
@@ -96,7 +105,8 @@ async function run() {
 
   try {
     const userData = await application.evaluate(({ app }) => app.getPath("userData"));
-    assert.ok(userData.startsWith(profile + path.sep), "验收必须使用隔离的用户数据目录");
+    assert.ok(fs.realpathSync(userData).startsWith(fs.realpathSync(profile) + path.sep),
+      "验收必须使用隔离的用户数据目录");
     const pet = await application.firstWindow();
     pet.on("pageerror", (error) => pageErrors.push("pet: " + error.message));
     await pet.locator("#pet-art").waitFor();
@@ -222,6 +232,24 @@ async function run() {
     await market.getByRole("button", { name: "删除测试伙伴" }).click();
     await market.locator(".empty").waitFor();
     await pet.waitForFunction(() => document.getElementById("pet").dataset.character === "gugugaga-idle");
+
+    for (const [fileName, , mime] of ANIMATED_IMPORTS) {
+      const imagePath = path.join(profile, fileName);
+      await application.evaluate(({ dialog }, filePaths) => {
+        dialog.showOpenDialog = async () => ({ canceled: false, filePaths });
+      }, [imagePath]);
+      await market.locator("#import-pet").click();
+      await market.locator(".pet-card h2").first().waitFor();
+      await market.getByText("已保留素材原有动画，可以直接作为桌宠使用。").waitFor();
+      const importedSettings = JSON.parse(fs.readFileSync(path.join(userData, "settings.json"), "utf8"));
+      const importedPet = importedSettings.customPets[0];
+      assert.deepEqual(fs.readFileSync(path.join(userData, "pets", importedPet.id + "." + importedPet.extension)),
+        fs.readFileSync(imagePath), fileName + " 应保留全部原始帧");
+      await pet.waitForFunction((expectedMime) =>
+        document.getElementById("pet-art").src.startsWith("data:" + expectedMime), mime);
+      await market.getByRole("button", { name: "删除" + importedPet.name }).click();
+      await market.locator(".empty").waitFor();
+    }
 
     await market.close();
     const homeOpened = application.waitForEvent("window");
