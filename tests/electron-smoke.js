@@ -108,6 +108,20 @@ async function run() {
     assert.equal(await pet.title(), "淘气桌宠");
     assert.equal(await application.evaluate(({ BrowserWindow }) =>
       BrowserWindow.getAllWindows()[0].isAlwaysOnTop()), true);
+
+    await pet.mouse.move(-10, -10);
+    await pet.waitForFunction(() =>
+      getComputedStyle(document.getElementById("gugugaga-state-toolbar")).opacity === "0"
+    );
+    assert.equal(await pet.locator("#gugugaga-state-toolbar").evaluate((element) =>
+      getComputedStyle(element).pointerEvents), "none", "鼠标离开后工具栏不应占用点击区域");
+    await pet.locator("#pet").hover();
+    await pet.waitForFunction(() =>
+      getComputedStyle(document.getElementById("gugugaga-state-toolbar")).opacity === "1"
+    );
+    assert.equal(await pet.locator("#gugugaga-state-toolbar").evaluate((element) =>
+      getComputedStyle(element).pointerEvents), "auto", "悬浮桌宠时工具栏应可操作");
+
     await pet.locator("#pet").click();
     await pet.locator("#pet").focus();
     const focusedStyle = await pet.evaluate(() => ({

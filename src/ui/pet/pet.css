@@ -140,7 +140,7 @@ html, body {
   bottom: 4px;
   left: 50%;
   /* 少了这一行工具条会整体偏右半个身位（240px 窗口里偏 56px） */
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(8px);
   display: grid;
   grid-template-columns: 48px 1px 48px;
   align-items: center;
@@ -152,6 +152,17 @@ html, body {
   background: #fffefaed;
   box-shadow: 0 8px 24px #30273b2c, 0 2px 7px #30273b17;
   backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.stage:hover .state-toolbar,
+.state-toolbar:focus-within,
+.stage:has(.state-picker) .state-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
 }
 
 .state-toolbar button {
@@ -284,5 +295,13 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .pet-art, .pet.walking, .pet[data-reaction] .pet-art { animation: none; }
   .pet::after { display: none; }
-  .bubble, .hint, .state-toolbar button { transition: none; }
+  .bubble, .hint, .state-toolbar, .state-toolbar button { transition: none; }
+}
+
+@media (hover: none) {
+  .state-toolbar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
 }
