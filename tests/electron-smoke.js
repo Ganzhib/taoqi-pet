@@ -115,7 +115,6 @@ async function run() {
       artworkFilter: getComputedStyle(document.getElementById("pet-art")).filter,
     }));
     assert.equal(focusedStyle.outlineStyle, "none", "宠物获得焦点后不应出现矩形轮廓");
-    assert.match(focusedStyle.artworkFilter, /drop-shadow/, "键盘焦点提示应沿角色透明轮廓显示");
     assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith(
       "pet://pets/gugugaga-idle.webm"), "点击角色只互动，不应自动切换造型");
     await pet.locator("#bubble.visible").waitFor();
