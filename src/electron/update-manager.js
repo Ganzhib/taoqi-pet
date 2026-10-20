@@ -3,10 +3,12 @@ const {
   configureUpdaterChannel,
   isPreviewVersion,
   newestRelease,
+  releaseDownloadUrl,
+  releasesFromAtom,
   updateChannel,
 } = require("./version-check");
 
-const RELEASES_API = "https://api.github.com/repos/Ganzhib/taoqi-pet/releases?per_page=20";
+const RELEASES_FEED = "https://github.com/Ganzhib/taoqi-pet/releases.atom";
 const RELEASES_PAGE = "https://github.com/Ganzhib/taoqi-pet/releases";
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
@@ -41,12 +43,16 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
     setStatus({ phase: "error" });
     if (manualCheck) {
       manualCheck = false;
-      await dialog.showMessageBox({
+      const { response } = await dialog.showMessageBox({
         type: "warning",
         title: "检查更新失败",
-        message: "暂时无法获取新版本，请稍后重试。",
-        buttons: ["知道了"],
+        message: "暂时无法连接版本服务。",
+        detail: "请检查网络后重试，也可以打开官方发布页手动查看。",
+        buttons: ["稍后重试", "打开发布页"],
+        defaultId: 0,
+        cancelId: 0,
       });
+      if (response === 1) shell.openExternal(RELEASES_PAGE);
     }
   }
 
@@ -73,13 +79,13 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
   }
 
   async function findNewestRelease() {
-    const response = await fetch(RELEASES_API, {
-      headers: { Accept: "application/vnd.github+json", "User-Agent": "taoqi-pet-updater" },
+    const response = await fetch(RELEASES_FEED, {
+      headers: { Accept: "application/atom+xml" },
       signal: AbortSignal.timeout(10000),
     });
-    if (!response.ok) throw new Error("GitHub releases HTTP " + response.status);
-    const releases = await response.json();
-    if (!Array.isArray(releases)) throw new Error("GitHub releases response is not a list");
+    if (!response.ok) throw new Error("GitHub releases feed HTTP " + response.status);
+    const releases = releasesFromAtom(await response.text());
+    if (releases.length === 0) throw new Error("GitHub releases feed contains no valid releases");
     return newestRelease(releases, currentVersion);
   }
 
@@ -154,45 +160,38 @@ function createUpdateManager({ app, Notification, dialog, shell, isQuiet, sendNo
     const previouslyAvailable = status.phase === "available" ? status.version : null;
     manualCheck = manual;
     setStatus({ phase: "checking" });
-    if (canInstall) {
-      try {
-        if (currentChannel === "preview") {
-          const release = await findNewestRelease();
-          if (!release) {
-            await showUpToDate(manual);
-            return;
-          }
-          configureUpdaterChannel(autoUpdater, updateChannel(release.version));
-        }
-        await autoUpdater.checkForUpdates();
-      } catch (error) {
-        if (status.phase !== "error") await showUpdateError(error);
-      }
-      return;
-    }
 
     try {
       const release = await findNewestRelease();
-      manualCheck = false;
-      if (release) {
-        setStatus({ phase: "available", ...release });
-        if (release.version !== previouslyAvailable) {
-          announce("淘气桌宠有新版本", "发现 " + release.version + "，点击通知前往下载。", openRelease);
-        }
-        if (manual) await dialog.showMessageBox({
-          type: "info",
-          title: "发现新版本",
-          message: "淘气桌宠 " + release.version + " 已发布。",
-          detail: "当前安装包暂不支持原地安装，请到发布页下载。",
-          buttons: ["稍后", "打开下载页"],
-          defaultId: 1,
-          cancelId: 0,
-        }).then(({ response: choice }) => { if (choice === 1) openRelease(); });
-      } else {
+      if (!release) {
         await showUpToDate(manual);
+        return;
       }
+
+      if (canInstall) {
+        const channel = updateChannel(release.version);
+        configureUpdaterChannel(autoUpdater, channel);
+        autoUpdater.setFeedURL(releaseDownloadUrl(release.version));
+        await autoUpdater.checkForUpdates();
+        return;
+      }
+
+      manualCheck = false;
+      setStatus({ phase: "available", ...release });
+      if (release.version !== previouslyAvailable) {
+        announce("淘气桌宠有新版本", "发现 " + release.version + "，点击通知前往下载。", openRelease);
+      }
+      if (manual) await dialog.showMessageBox({
+        type: "info",
+        title: "发现新版本",
+        message: "淘气桌宠 " + release.version + " 已发布。",
+        detail: "当前安装包暂不支持原地安装，请到发布页下载。",
+        buttons: ["稍后", "打开下载页"],
+        defaultId: 1,
+        cancelId: 0,
+      }).then(({ response: choice }) => { if (choice === 1) openRelease(); });
     } catch (error) {
-      await showUpdateError(error);
+      if (status.phase !== "error") await showUpdateError(error);
     }
   }
 

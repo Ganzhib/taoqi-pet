@@ -1,4 +1,6 @@
 const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)(?:-preview\.(\d+))?$/;
+const RELEASE_TAG_LINK_PATTERN =
+  /href="https:\/\/github\.com\/Ganzhib\/taoqi-pet\/releases\/tag\/(v[^"]+)"/g;
 
 function parseVersion(version) {
   const match = VERSION_PATTERN.exec(version);
@@ -34,6 +36,23 @@ function configureUpdaterChannel(updater, channel) {
   updater.allowDowngrade = false;
 }
 
+function releasesFromAtom(feed) {
+  const releases = [];
+  const seen = new Set();
+  for (const match of feed.matchAll(RELEASE_TAG_LINK_PATTERN)) {
+    const tag = match[1];
+    const version = tag.slice(1);
+    if (seen.has(tag) || !parseVersion(version)) continue;
+    seen.add(tag);
+    releases.push({
+      tag_name: tag,
+      draft: false,
+      prerelease: isPreviewVersion(version),
+    });
+  }
+  return releases;
+}
+
 function newestRelease(releases, currentVersion) {
   const current = parseVersion(currentVersion);
   if (!current) throw new Error("应用版本号不符合发布约定。");
@@ -59,10 +78,17 @@ function newestRelease(releases, currentVersion) {
   return selected && { version: selected.version, url: selected.url };
 }
 
+function releaseDownloadUrl(version) {
+  if (!parseVersion(version)) throw new Error("应用版本号不符合发布约定。");
+  return "https://github.com/Ganzhib/taoqi-pet/releases/download/v" + version + "/";
+}
+
 module.exports = {
   configureUpdaterChannel,
   isPreviewVersion,
   newestRelease,
   parseVersion,
+  releaseDownloadUrl,
+  releasesFromAtom,
   updateChannel,
 };

@@ -5,6 +5,8 @@ const {
   isPreviewVersion,
   newestRelease,
   parseVersion,
+  releaseDownloadUrl,
+  releasesFromAtom,
   updateChannel,
 } = require("../src/electron/version-check");
 
@@ -26,6 +28,28 @@ test("从公开 Release 中选择比当前版本新的最高版本", () => {
     url: "https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.3.0-preview.2",
   });
   assert.equal(newestRelease(releases, "0.3.0-preview.2"), null);
+});
+
+test("Release Feed 只提取项目版本标签并标记预览版", () => {
+  const feed = `<feed>
+    <link href="https://github.com/Ganzhib/taoqi-pet/releases"/>
+    <entry><link href="https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.4.1"/></entry>
+    <entry><link href="https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.4.2-preview.3"/></entry>
+    <entry><link href="https://github.com/Ganzhib/taoqi-pet/releases/tag/not-a-version"/></entry>
+    <entry><link href="https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.4.1"/></entry>
+  </feed>`;
+  assert.deepEqual(releasesFromAtom(feed), [
+    { tag_name: "v0.4.1", draft: false, prerelease: false },
+    { tag_name: "v0.4.2-preview.3", draft: false, prerelease: true },
+  ]);
+});
+
+test("安装版更新地址直接指向候选 Release", () => {
+  assert.equal(
+    releaseDownloadUrl("0.4.4"),
+    "https://github.com/Ganzhib/taoqi-pet/releases/download/v0.4.4/",
+  );
+  assert.throws(() => releaseDownloadUrl("latest"), /版本号/);
 });
 
 test("正式版比相同编号的预览版新", () => {
