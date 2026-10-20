@@ -4,7 +4,7 @@
 
 `assets/source/catbuddy-reference.png` 保存所有者提供的橘白猫原始透明图。可重复运行的 `scripts/render-cat-gifs.py` 用 Pillow 输出 280×320 的循环 GIF/WebM 以及 PNG、ICO、ICNS 图标；以原图为唯一猫身，不重新生成肢体。`scripts/render-friend-gifs.py` 输出企鹅、小奶猫、打工狗、泡泡龙、蹦蹦兔和云朵团子素材。
 
-`pet-core.js` 保存 8 位当前内置角色元数据，默认角色为 `gugugaga-idle`。桌宠、市场和小窝通过统一的受控素材协议读取 GIF/WebM；用户上传接受 PNG/JPG/GIF/WebP，生成角色保存为 SVG。旧设置中的已下架角色 ID 由设置存储迁移到当前默认角色。
+`pet-core.js` 保存 8 位当前内置角色元数据，默认角色为 `gugugaga-idle`。桌宠、市场和小窝通过统一的受控素材协议读取 GIF/WebM；用户上传接受 PNG/JPG/GIF/WebP，生成角色保存为 SVG。旧设置中的已下架角色 ID 由设置存储迁移到当前默认角色。\n\n`useArtwork` 将异步加载结果与发起请求时的角色 ID 绑定。角色或造型发生变化后，当前渲染立即返回空素材并卸载旧播放器；新素材完成加载后再挂载对应 GIF/WebM。旧请求即使稍后完成也不会覆盖当前角色，透明窗口中不会继续合成上一套造型的最后一帧。
 
 窗口层级只保留“总在最前”和“普通窗口”，由主进程单一函数负责切换。Windows/macOS 的置顶模式使用高窗口层级，macOS 追加所有空间和全屏可见选项；普通模式恢复系统默认层级。应用不创建 `desktop` 类型窗口，也不持久化桌面壁纸层设置，因此切换层级无需重建窗口。
 

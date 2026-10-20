@@ -131,10 +131,14 @@ async function run() {
     await pet.locator("#gugugaga-open-states").click();
     await pet.locator("#gugugaga-state-picker").waitFor();
     await pet.screenshot({ path: "artifacts/pet-gugugaga-state-picker.png" });
+    const previousArtwork = await pet.locator("#pet-art").elementHandle();
     await pet.getByRole("button", { name: "黑帽·走路" }).click();
     await pet.waitForFunction(() => document.getElementById("pet-art").src.startsWith(
       "pet://pets/gugugaga-beanie.webm"));
+    assert.equal(await previousArtwork.evaluate((element) => element.isConnected), false,
+      "切换造型时应卸载旧播放器，避免透明区域残留上一帧");
     await waitForArtwork(pet, "咕咕嘎嘎主动切换后的黑帽素材");
+    await pet.screenshot({ path: "artifacts/pet-gugugaga-state-switch.png" });
     const savedState = JSON.parse(fs.readFileSync(path.join(userData, "settings.json"), "utf8"));
     assert.equal(savedState.gugugagaStateId, "gugugaga-beanie", "造型选择应保存到本地");
     await pet.locator("#pet").click();
