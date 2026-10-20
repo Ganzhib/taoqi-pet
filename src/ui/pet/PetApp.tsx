@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState,
+  type KeyboardEvent, type PointerEvent } from "react";
 import type { PetReaction, PetState } from "../shared/contracts";
 import { useArtwork } from "../shared/useArtwork";
 import { ArtworkPlayer } from "../shared/ArtworkPlayer";
@@ -43,6 +44,9 @@ export function PetApp() {
   const bubbleTimer = useRef<number | undefined>(undefined);
   const reactionTimer = useRef<number | undefined>(undefined);
   const pressTimer = useRef<number | undefined>(undefined);
+  const stageRef = useRef<HTMLElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const [bubbleLift, setBubbleLift] = useState(0);
 
   const showBubble = useCallback((message: string) => {
     setBubble(message);
@@ -228,13 +232,30 @@ export function PetApp() {
   // to the pet's visual top so larger sizes do not leave a large empty gap.
   const bubbleBottom = 27 + (isGugugaga ? 18 : 0) + 102.5 * (1 + scale);
 
+  // 兜底：气泡高度随文案折行数变化，而窗口会裁掉溢出内容。
+  // 放不下时整体压低一点——宁可稍微压住宠物脑袋，也不能把文字切掉。
+  useLayoutEffect(() => {
+    const el = bubbleRef.current;
+    const stage = stageRef.current;
+    if (!el || !stage) return;
+    const update = () => {
+      const overflow = bubbleBottom + el.offsetHeight + 6 - stage.clientHeight;
+      setBubbleLift(overflow > 0 ? overflow : 0);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [bubble, bubbleBottom]);
+
   return (
-    <main className="stage">
+    <main className="stage" ref={stageRef}>
       {state?.focusEndsAt != null && (
         <div id="focus-badge" className="focus-badge" role="timer" aria-live="off">{focusText}</div>
       )}
-      <div id="bubble" className={"bubble" + (bubble ? " visible" : "")}
-        style={{ bottom: bubbleBottom }} aria-live="polite">{bubble}</div>
+      <div id="bubble" ref={bubbleRef} className={"bubble" + (bubble ? " visible" : "")}
+        style={{ bottom: bubbleBottom - bubbleLift }} aria-live="polite">{bubble}</div>
       <div id="pet" className={petClass} role="button" tabIndex={0}
         aria-label="淘气桌宠，点击互动，拖动移动，右键打开菜单"
         data-character={state?.characterId} data-decoration={state?.decorationId}

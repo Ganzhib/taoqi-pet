@@ -37,12 +37,18 @@ html, body {
 
 .focus-badge[hidden] { display: none; }
 
+/* 靠 left/right 双定 + margin auto 让气泡能用上整个窗口宽度。
+   原先 left:50% 配 translateX(-50%) 居中时，绝对定位的收缩宽度只剩中线到右边这一半
+   （240px 窗口里只有 120px），长句子被逼折行，高度涨上去又被窗口顶部裁掉。 */
 .bubble {
   position: absolute;
   z-index: 5;
   top: auto;
-  left: 50%;
+  left: 0;
+  right: 0;
+  width: fit-content;
   max-width: 92%;
+  margin-inline: auto;
   padding: 9px 13px;
   border: 2px solid #49375d;
   border-radius: 16px;
@@ -52,12 +58,12 @@ html, body {
   text-align: center;
   box-shadow: 0 5px 0 #49375d22;
   opacity: 0;
-  transform: translate(-50%, 8px);
+  transform: translateY(8px);
   transition: opacity .18s, transform .18s;
   pointer-events: none;
 }
 
-.bubble.visible { opacity: 1; transform: translate(-50%, 0); }
+.bubble.visible { opacity: 1; transform: translateY(0); }
 .stage:has(.focus-badge:not([hidden])) .bubble { top: 38px; bottom: auto !important; }
 
 .pet {
@@ -132,6 +138,8 @@ html, body {
   z-index: 8;
   bottom: 4px;
   left: 50%;
+  /* 少了这一行工具条会整体偏右半个身位（240px 窗口里偏 56px） */
+  transform: translateX(-50%);
   display: grid;
   grid-template-columns: 48px 1px 48px;
   align-items: center;
