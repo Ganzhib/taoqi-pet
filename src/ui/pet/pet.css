@@ -80,7 +80,8 @@ html, body {
 }
 
 .pet:active { cursor: grabbing; }
-.pet:focus-visible { outline: 3px solid #8670d0; outline-offset: 4px; border-radius: 28px; }
+.pet:focus-visible { outline: none; }
+.pet:focus-visible .pet-art { filter: drop-shadow(0 0 3px #8670d0aa); }
 .pet.has-state-switcher { bottom: 41px; }
 
 .pet-art {
