@@ -45,6 +45,12 @@ jobs:
           set -euo pipefail
           VERSION="$(node -p "require('./package.json').version")"
           TAG="v$VERSION"
+          if test "${GITHUB_REF_TYPE:-}" = tag; then
+            test "$GITHUB_REF_NAME" = "$TAG" || {
+              echo "Tag $GITHUB_REF_NAME does not match package version $TAG"
+              exit 1
+            }
+          fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             # 已存在：必须是 draft（允许重跑打包）；否则说明已经发过，不覆盖
             test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true

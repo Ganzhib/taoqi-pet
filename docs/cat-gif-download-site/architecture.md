@@ -22,6 +22,7 @@
 - 第 8 张静态卡片表示“导入或捏宠”，不伪装成官网可执行的上传入口。
 - 品牌区域用纯 HTML/CSS 字标，避免应用的动物图标成为官网唯一品牌形象。
 - 开启 `prefers-reduced-motion` 时隐藏 GIF，用每个角色的数据符号代替动画；CSS 动画和过渡同时降至最低。
+- 下载区在 HTML 中保留一个经过验收的稳定版本作为兜底；`site/main.js` 读取 GitHub 最新正式 Release，只有 Windows/macOS 四个必需资产全部存在时才原子更新版本文字和下载链接，避免发布构建过程中出现半套新链接。
 
 静态发布步骤把 `site/index.html`、`site/styles.css`、`site/main.js` 和 `assets/pets/*-idle.gif` 复制到发布目录，并断言恰好存在 7 个当前内置角色的待机 GIF。下载按钮固定指向当前正式版 GitHub Release 资产。页面支持键盘操作和响应式布局。
 
