@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("taoqiPet", {
   getState: () => ipcRenderer.invoke("pet:get-state"),
   getArtwork: (id) => ipcRenderer.invoke("pet:get-artwork", id),
   getArtworkSource: (id) => ipcRenderer.invoke("pet:get-artwork-source", id),
+  setGugugagaState: (id) => ipcRenderer.invoke("pet:set-gugugaga-state", id),
   showMenu: () => ipcRenderer.send("pet:show-menu"),
   openMarket: () => ipcRenderer.send("pet:open-market"),
   openHome: () => ipcRenderer.send("pet:open-home"),

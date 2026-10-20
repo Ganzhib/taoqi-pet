@@ -5,12 +5,15 @@ const path = require("node:path");
 const {
   TOOLBOX_URL,
   DEFAULT_CHARACTER_ID,
+  GUGUGAGA_STATES,
+  DEFAULT_GUGUGAGA_STATE_ID,
   CHARACTERS,
   MOVEMENT_MODES,
   detectImageType,
   isValidCustomPet,
   resolveCharacterId,
   resolveMovementMode,
+  resolveGugugagaStateId,
   clampToWorkArea,
   nextFollowBounds,
 } = require("../src/electron/pet-core");
@@ -46,6 +49,15 @@ test("咕咕嘎嘎作为免费内置角色进入市场", () => {
   assert.ok(character);
   assert.equal(character.name, "咕咕嘎嘎");
   assert.equal(character.category, "沙雕日常");
+});
+
+test("咕咕嘎嘎九种造型有稳定顺序，无效设置回到默认造型", () => {
+  assert.equal(GUGUGAGA_STATES.length, 9);
+  assert.equal(new Set(GUGUGAGA_STATES.map((state) => state.id)).size, 9);
+  assert.equal(DEFAULT_GUGUGAGA_STATE_ID, "gugugaga-idle");
+  assert.equal(resolveGugugagaStateId("gugugaga-cat"), "gugugaga-cat");
+  assert.equal(resolveGugugagaStateId("not-a-state"), DEFAULT_GUGUGAGA_STATE_ID);
+  assert.deepEqual(CHARACTERS[0].variants, GUGUGAGA_STATES.slice(1).map((state) => state.id));
 });
 
 test("已下架角色和无效选择迁移到咕咕嘎嘎，自定义角色保持不变", () => {

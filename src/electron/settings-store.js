@@ -3,12 +3,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 const {
   DEFAULT_CHARACTER_ID,
+  DEFAULT_GUGUGAGA_STATE_ID,
   DECORATIONS,
   HOME_THEMES,
   HOME_FURNITURE,
   isValidCustomPet,
   resolveCharacterId,
   resolveMovementMode,
+  resolveGugugagaStateId,
 } = require("./pet-core");
 
 const DEFAULT_SETTINGS = {
@@ -19,6 +21,7 @@ const DEFAULT_SETTINGS = {
   desktopLevel: false,
   scale: 1,
   characterId: DEFAULT_CHARACTER_ID,
+  gugugagaStateId: DEFAULT_GUGUGAGA_STATE_ID,
   decorationId: "none",
   customPets: [],
   homeThemeId: "sunny",
@@ -54,6 +57,7 @@ function readSettings() {
       desktopLevel: saved.desktopLevel === true,
       scale: [1, 1.25, 1.5].includes(saved.scale) ? saved.scale : 1,
       characterId: resolveCharacterId(saved.characterId, customPets),
+      gugugagaStateId: resolveGugugagaStateId(saved.gugugagaStateId),
       customPets,
       decorationId: DECORATIONS.some((decoration) => decoration.id === saved.decorationId)
         ? saved.decorationId : DEFAULT_SETTINGS.decorationId,

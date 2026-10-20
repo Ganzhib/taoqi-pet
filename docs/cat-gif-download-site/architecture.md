@@ -27,9 +27,7 @@
 
 ## 官网与发行发布
 
-GitHub Actions 在 Windows/macOS 构建未签名安装包并发布 Release。下载官网由本仓库的 `.github/workflows/deploy-pages.yml` 自动发布 GitHub Pages；`.github/workflows/deploy-site.yml` 负责独立域名的手动部署。
-
-独立域名工作流用本仓库 `production` 环境的专用 `SITE_SSH_PRIVATE_KEY` 与 `SITE_SSH_KNOWN_HOSTS` 登录既有服务器；打包后的站点放在 `/var/www/taoqi-pet/releases/<commit>`，原子切换 `current` 符号链接。独立的 `pet.ganzhibin.icu` Nginx 虚拟主机提供静态文件，Certbot 使用 webroot 申请 HTTPS 证书。部署后验证首页包含“淘气桌宠”，并下载 `gugugaga-idle.gif` 检查 GIF89a 文件头。工作流不依赖其他项目仓库或其密钥。
+GitHub Actions 在 Windows/macOS 构建未签名安装包并发布 Release。下载官网只由本仓库的 `.github/workflows/deploy-pages.yml` 自动发布到 GitHub Pages。工作流组装静态页面与本地角色素材后使用 GitHub Pages 官方 Action 发布，不持有 SSH 私钥，不连接独立服务器，也不管理 Nginx、DNS 或域名证书。
 
 ## 图标完整性校验
 

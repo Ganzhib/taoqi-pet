@@ -75,6 +75,7 @@ html, body {
 
 .pet:active { cursor: grabbing; }
 .pet:focus-visible { outline: 3px solid #8670d0; outline-offset: 4px; border-radius: 28px; }
+.pet.has-state-switcher { bottom: 41px; }
 
 .pet-art {
   width: 100%;
@@ -125,6 +126,87 @@ html, body {
 }
 
 .hint.hidden { opacity: 0; }
+
+.state-toolbar {
+  position: absolute;
+  z-index: 8;
+  bottom: 4px;
+  left: 50%;
+  display: grid;
+  grid-template-columns: 48px 1px 48px;
+  align-items: center;
+  width: 113px;
+  height: 44px;
+  padding: 0 8px;
+  border: 1px solid #4b40551a;
+  border-radius: 22px;
+  background: #fffefaed;
+  box-shadow: 0 8px 24px #30273b2c, 0 2px 7px #30273b17;
+  backdrop-filter: blur(12px);
+}
+
+.state-toolbar button {
+  display: grid;
+  width: 40px;
+  height: 36px;
+  margin: auto;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: #3f3749;
+  cursor: pointer;
+}
+
+.state-toolbar button:hover,
+.state-toolbar button.active { background: #eee9f8; color: #6550a0; }
+.state-toolbar button:active { transform: scale(.92); }
+.state-toolbar button:focus-visible { outline: 2px solid #806bc5; outline-offset: 1px; }
+.state-toolbar svg { width: 23px; height: 23px; fill: currentColor; }
+.state-toolbar-divider { width: 1px; height: 21px; background: #4b405526; }
+
+.state-picker {
+  position: absolute;
+  z-index: 7;
+  right: 8px;
+  bottom: 54px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  width: 224px;
+  padding: 9px;
+  border: 1px solid #4b40551f;
+  border-radius: 18px;
+  background: #fffefaF7;
+  box-shadow: 0 10px 30px #30273b30;
+  backdrop-filter: blur(14px);
+}
+
+.state-picker button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 4px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #f5f1fa;
+  color: #4a4055;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.state-picker button:hover { background: #ece5f7; }
+.state-picker button.selected {
+  border-color: #8a73cd;
+  background: #e9e1f8;
+  color: #59428d;
+  font-weight: 700;
+}
+.state-picker button:focus-visible { outline: 2px solid #806bc5; outline-offset: 1px; }
 
 .pet.walking { animation: walk .28s ease-in-out infinite alternate; }
 .pet[data-reaction="tap"] .pet-art { animation: hop .38s ease-out 2 alternate; }
@@ -193,5 +275,5 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .pet-art, .pet.walking, .pet[data-reaction] .pet-art { animation: none; }
   .pet::after { display: none; }
-  .bubble, .hint { transition: none; }
+  .bubble, .hint, .state-toolbar button { transition: none; }
 }

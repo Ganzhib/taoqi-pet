@@ -5,6 +5,7 @@ const path = require("node:path");
 const {
   TOOLBOX_URL,
   CHARACTERS,
+  GUGUGAGA_STATES,
   MOVEMENT_MODES,
   DECORATIONS,
   HOME_THEMES,
@@ -61,8 +62,12 @@ function isFocusActive() {
 
 function sendState() {
   if (petWindow && !petWindow.isDestroyed()) {
-    petWindow.webContents.send("pet:state", { ...settings, focusActive: isFocusActive() });
+    petWindow.webContents.send("pet:state", getPetState());
   }
+}
+
+function getPetState() {
+  return { ...settings, focusActive: isFocusActive(), gugugagaStates: GUGUGAGA_STATES };
 }
 
 function sendNotice(message) {
@@ -248,7 +253,8 @@ function getHomeState() {
   const character = [...CHARACTERS, ...settings.customPets]
     .find((pet) => pet.id === settings.characterId);
   return {
-    characterId: settings.characterId,
+    characterId: settings.characterId === "gugugaga-idle"
+      ? settings.gugugagaStateId : settings.characterId,
     characterName: character.name,
     decorationId: settings.decorationId,
     themeId: settings.homeThemeId,
@@ -755,7 +761,12 @@ if (!app.requestSingleInstanceLock()) {
       refreshMenu: updateTrayMenu,
       beforeInstall: () => { isQuitting = true; },
     });
-    ipcMain.handle("pet:get-state", () => ({ ...settings, focusActive: isFocusActive() }));
+    ipcMain.handle("pet:get-state", getPetState);
+    ipcMain.handle("pet:set-gugugaga-state", (_event, id) => {
+      if (!GUGUGAGA_STATES.some((state) => state.id === id)) return false;
+      updateSettings({ gugugagaStateId: id });
+      return true;
+    });
     ipcMain.handle("pet:get-artwork", (_event, id) => getArtwork(id));
     ipcMain.handle("pet:get-artwork-source", (_event, id) => getArtworkSource(id));
     ipcMain.handle("market:get-catalog", getCatalog);

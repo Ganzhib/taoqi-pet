@@ -12,18 +12,9 @@ function focusLabel(focusEndsAt: number) {
   return "专注 " + minutes + ":" + rest;
 }
 
-function artworkId(characterId: string | undefined, reaction: PetReaction | null,
-  motion: "idle" | "walk") {
+function artworkId(characterId: string | undefined, gugugagaStateId: string | undefined) {
   if (characterId !== "gugugaga-idle") return characterId ?? null;
-  if (reaction === "double") return "gugugaga-happy";
-  if (reaction === "feed" || reaction === "play") return "gugugaga-worker";
-  if (reaction === "praise") return "gugugaga-prayer";
-  if (reaction === "look") return "gugugaga-daydream";
-  if (reaction === "nap") return "gugugaga-pajamas";
-  if (reaction === "long") return "gugugaga-cat";
-  if (reaction === "tap") return "gugugaga-overalls";
-  if (motion === "walk") return "gugugaga-beanie";
-  return "gugugaga-idle";
+  return gugugagaStateId ?? "gugugaga-idle";
 }
 
 export function PetApp() {
@@ -35,9 +26,10 @@ export function PetApp() {
   });
   const [focusText, setFocusText] = useState("");
   const [hintHidden, setHintHidden] = useState(false);
+  const [statePickerOpen, setStatePickerOpen] = useState(false);
   const [idleCycle, setIdleCycle] = useState(0);
   const [visible, setVisible] = useState(!document.hidden);
-  const activeArtworkId = artworkId(state?.characterId, reaction.kind, motion);
+  const activeArtworkId = artworkId(state?.characterId, state?.gugugagaStateId);
   const artwork = useArtwork(activeArtworkId, window.taoqiPet.getArtworkSource);
 
   const characterId = useRef("caramel");
@@ -63,9 +55,6 @@ export function PetApp() {
     let visualKind = kind;
     if (kind === "tap" && characterId.current === "penguin-idle") {
       const tapMotions: PetReaction[] = ["look", "waddle", "tap"];
-      visualKind = tapMotions[tapIndex.current % tapMotions.length];
-    } else if (kind === "tap" && characterId.current === "gugugaga-idle") {
-      const tapMotions: PetReaction[] = ["look", "tap", "play"];
       visualKind = tapMotions[tapIndex.current % tapMotions.length];
     }
     if (kind === "tap") tapIndex.current++;
@@ -156,6 +145,7 @@ export function PetApp() {
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
+    setStatePickerOpen(false);
     pointerStart.current = { x: event.screenX, y: event.screenY };
     moved.current = false;
     longPressed.current = false;
@@ -209,13 +199,34 @@ export function PetApp() {
     }
   }
 
+  const selectGugugagaState = useCallback(async (id: string, name: string) => {
+    if (await window.taoqiPet.setGugugagaState(id)) {
+      setStatePickerOpen(false);
+      showBubble("换成" + name + "啦");
+    }
+  }, [showBubble]);
+
+  const cycleGugugagaState = useCallback(() => {
+    const options = state?.gugugagaStates ?? [];
+    if (options.length === 0) return;
+    const currentIndex = options.findIndex((option) => option.id === state?.gugugagaStateId);
+    const next = options[(currentIndex + 1 + options.length) % options.length];
+    void selectGugugagaState(next.id, next.name);
+  }, [selectGugugagaState, state?.gugugagaStateId, state?.gugugagaStates]);
+
+  const isGugugaga = state?.characterId === "gugugaga-idle";
+  const selectedGugugagaState = state?.gugugagaStates.find(
+    (option) => option.id === state.gugugagaStateId,
+  );
+
   const petClass = ["pet", motion === "walk" ? "walking" : "",
-    state?.focusActive ? "focused" : "", state?.quietMode ? "quiet" : ""]
+    state?.focusActive ? "focused" : "", state?.quietMode ? "quiet" : "",
+    isGugugaga ? "has-state-switcher" : ""]
     .filter(Boolean).join(" ");
   const scale = state?.scale ?? 1;
   // The pet is scaled around its center while the window also grows. Anchor the bubble
   // to the pet's visual top so larger sizes do not leave a large empty gap.
-  const bubbleBottom = 27 + 102.5 * (1 + scale);
+  const bubbleBottom = 27 + (isGugugaga ? 18 : 0) + 102.5 * (1 + scale);
 
   return (
     <main className="stage">
@@ -236,7 +247,45 @@ export function PetApp() {
           loadFallback={window.taoqiPet.getArtwork} />
         <div className="accessory" aria-hidden="true" />
       </div>
-      <div className={"hint" + (hintHidden ? " hidden" : "")}>拖动我 · M 市场 · H 小窝</div>
+      {isGugugaga && (
+        <>
+          {statePickerOpen && (
+            <div id="gugugaga-state-picker" className="state-picker" role="dialog"
+              aria-label="选择咕咕嘎嘎造型">
+              {state.gugugagaStates.map((option) => (
+                <button key={option.id} type="button"
+                  className={option.id === state.gugugagaStateId ? "selected" : ""}
+                  aria-pressed={option.id === state.gugugagaStateId}
+                  onClick={() => void selectGugugagaState(option.id, option.name)}>
+                  {option.name}
+                </button>
+              ))}
+            </div>
+          )}
+          <div id="gugugaga-state-toolbar" className="state-toolbar"
+            aria-label="咕咕嘎嘎造型工具条">
+            <button id="gugugaga-open-states" type="button"
+              className={statePickerOpen ? "active" : ""}
+              aria-label="选择造型" aria-expanded={statePickerOpen}
+              onClick={() => setStatePickerOpen((open) => !open)}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 4.8a3 3 0 0 0 6 0l4 2.1-2 4.1-2-1v9H9v-9l-2 1-2-4.1 4-2.1Z" />
+              </svg>
+            </button>
+            <span className="state-toolbar-divider" aria-hidden="true" />
+            <button id="gugugaga-next-state" type="button"
+              aria-label={"切换下一个造型，当前" + (selectedGugugagaState?.name ?? "默认造型")}
+              onClick={cycleGugugagaState}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M17.7 6.3A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.2L13 11h8V3l-3.3 3.3Z" />
+              </svg>
+            </button>
+          </div>
+        </>
+      )}
+      {!isGugugaga && (
+        <div className={"hint" + (hintHidden ? " hidden" : "")}>拖动我 · M 市场 · H 小窝</div>
+      )}
     </main>
   );
 }

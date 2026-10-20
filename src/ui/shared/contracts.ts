@@ -2,6 +2,11 @@ export type PetAction = "feed" | "play" | "praise";
 export type PetReaction = PetAction | "tap" | "double" | "long" | "nap" |
   "look" | "waddle" | "slide";
 
+export interface GugugagaStateOption {
+  id: string;
+  name: string;
+}
+
 export interface PetState {
   roaming: boolean;
   movementMode: "stay" | "wander" | "follow";
@@ -9,6 +14,8 @@ export interface PetState {
   alwaysOnTop: boolean;
   scale: number;
   characterId: string;
+  gugugagaStateId: string;
+  gugugagaStates: GugugagaStateOption[];
   decorationId: string;
   focusEndsAt: number | null;
   focusActive: boolean;
@@ -63,6 +70,7 @@ interface PetBridge {
   getArtworkSource(id: string): Promise<ArtworkSource | null>;
   // 图片素材（GIF），供 <img> 使用与视频解码失败时降级
   getArtwork(id: string): Promise<string | null>;
+  setGugugagaState(id: string): Promise<boolean>;
   showMenu(): void;
   openMarket(): void;
   openHome(): void;

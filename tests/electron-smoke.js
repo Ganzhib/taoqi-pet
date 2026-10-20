@@ -109,9 +109,8 @@ async function run() {
     assert.equal(await application.evaluate(({ BrowserWindow }) =>
       BrowserWindow.getAllWindows()[0].isAlwaysOnTop()), true);
     await pet.locator("#pet").click();
-    await pet.waitForFunction(() => document.getElementById("pet-art").src.startsWith(
-      "pet://pets/gugugaga-daydream.webm"), undefined, { timeout: 1000 });
-    await waitForArtwork(pet, "咕咕嘎嘎托腮动作素材");
+    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith(
+      "pet://pets/gugugaga-idle.webm"), "点击角色只互动，不应自动切换造型");
     await pet.locator("#bubble.visible").waitFor();
     assert.ok(await pet.locator("#bubble").textContent());
     const bubbleGap = await pet.evaluate(() => {
@@ -121,6 +120,19 @@ async function run() {
     });
     assert.ok(bubbleGap >= -8 && bubbleGap <= 12,
       "互动气泡应贴近宠物头顶，实际间距为 " + bubbleGap + "px");
+
+    await pet.locator("#gugugaga-open-states").click();
+    await pet.locator("#gugugaga-state-picker").waitFor();
+    await pet.screenshot({ path: "artifacts/pet-gugugaga-state-picker.png" });
+    await pet.getByRole("button", { name: "黑帽·走路" }).click();
+    await pet.waitForFunction(() => document.getElementById("pet-art").src.startsWith(
+      "pet://pets/gugugaga-beanie.webm"));
+    await waitForArtwork(pet, "咕咕嘎嘎主动切换后的黑帽素材");
+    const savedState = JSON.parse(fs.readFileSync(path.join(userData, "settings.json"), "utf8"));
+    assert.equal(savedState.gugugagaStateId, "gugugaga-beanie", "造型选择应保存到本地");
+    await pet.locator("#pet").click();
+    assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith(
+      "pet://pets/gugugaga-beanie.webm"), "互动后应保留用户选择的造型");
 
     const marketOpened = application.waitForEvent("window");
     await pet.locator("#pet").press("m");
@@ -216,9 +228,9 @@ async function run() {
     const savedHome = await homeReopened;
     savedHome.on("pageerror", (error) => pageErrors.push("home: " + error.message));
     await savedHome.waitForFunction(() =>
-      document.getElementById("room").dataset.theme === "night" &&
-      document.getElementById("furniture").dataset.furniture === "basket" &&
-      document.getElementById("best-score").textContent === "最佳 1 条"
+      document.getElementById("room")?.dataset.theme === "night" &&
+      document.getElementById("furniture")?.dataset.furniture === "basket" &&
+      document.getElementById("best-score")?.textContent === "最佳 1 条"
     );
 
     const hidden = await application.evaluate(({ BrowserWindow }) => {

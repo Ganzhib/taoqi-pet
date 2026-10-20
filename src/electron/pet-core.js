@@ -1,22 +1,26 @@
 const TOOLBOX_URL = "https://next.ganzhibin.icu/?utm_source=taoqi_pet&utm_medium=app&utm_content=toolbox";
 const DEFAULT_CHARACTER_ID = "gugugaga-idle";
 
+const GUGUGAGA_STATES = [
+  { id: "gugugaga-idle", name: "蓝书包·挥手" },
+  { id: "gugugaga-beanie", name: "黑帽·走路" },
+  { id: "gugugaga-pajamas", name: "云朵睡衣·伸懒腰" },
+  { id: "gugugaga-overalls", name: "背带裤·蹦跳" },
+  { id: "gugugaga-happy", name: "红帽·大笑" },
+  { id: "gugugaga-worker", name: "小工人·喝饮料" },
+  { id: "gugugaga-prayer", name: "双手合十·鞠躬" },
+  { id: "gugugaga-daydream", name: "托腮·晃脚" },
+  { id: "gugugaga-cat", name: "猫耳·猫爪" },
+];
+const DEFAULT_GUGUGAGA_STATE_ID = GUGUGAGA_STATES[0].id;
+
 const CHARACTERS = [
   {
     id: "gugugaga-idle",
     name: "咕咕嘎嘎",
     category: "沙雕日常",
     description: "书包一背，随时切换九种表情和穿搭。",
-    variants: [
-      "gugugaga-beanie",
-      "gugugaga-pajamas",
-      "gugugaga-overalls",
-      "gugugaga-happy",
-      "gugugaga-worker",
-      "gugugaga-prayer",
-      "gugugaga-daydream",
-      "gugugaga-cat",
-    ],
+    variants: GUGUGAGA_STATES.slice(1).map((state) => state.id),
   },
   { id: "penguin-idle", name: "企鹅", category: "沙雕日常", description: "自带羽绒服，还是觉得冷。" },
   { id: "cat-idle", name: "发呆猫", category: "沙雕日常", description: "什么都没做，但已经很努力了。" },
@@ -86,6 +90,11 @@ function resolveMovementMode(movementMode, roaming) {
   return roaming === false ? "stay" : "wander";
 }
 
+function resolveGugugagaStateId(stateId) {
+  return GUGUGAGA_STATES.some((state) => state.id === stateId)
+    ? stateId : DEFAULT_GUGUGAGA_STATE_ID;
+}
+
 function clampToWorkArea(bounds, workArea) {
   const maxX = Math.max(workArea.x, workArea.x + workArea.width - bounds.width);
   const maxY = Math.max(workArea.y, workArea.y + workArea.height - bounds.height);
@@ -114,6 +123,8 @@ function nextFollowBounds(bounds, cursor, workArea, maxStep = 8, stopDistance = 
 module.exports = {
   TOOLBOX_URL,
   DEFAULT_CHARACTER_ID,
+  GUGUGAGA_STATES,
+  DEFAULT_GUGUGAGA_STATE_ID,
   CHARACTERS,
   MOVEMENT_MODES,
   DECORATIONS,
@@ -124,6 +135,7 @@ module.exports = {
   isValidCustomPet,
   resolveCharacterId,
   resolveMovementMode,
+  resolveGugugagaStateId,
   clampToWorkArea,
   nextFollowBounds,
 };
