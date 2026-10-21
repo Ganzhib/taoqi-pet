@@ -53,9 +53,9 @@
 
 ## 发布状态
 
-[v0.4.4](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.4.4) 是当前正式版：修复 macOS 未签名版与 Windows 便携版因 GitHub REST API 匿名配额耗尽而无法检查更新的问题。客户端现在从公开 Release Feed 发现候选版本，Windows 安装版随后直接读取候选 Release 的更新清单；手动检查遇到网络问题时会提供官方发布页入口。Windows 安装版可接收原地更新；macOS 当前为未签名、未公证安装包，需要手动安装新版本。v0.4.3 的 macOS 用户需要手动升级到本版一次，之后的版本检查会使用新链路。发布构建与真实设备安装验证分别记录；尚未完成的实机验收会继续推进。
+[v0.4.5](https://github.com/Ganzhib/taoqi-pet/releases/tag/v0.4.5) 是当前正式版：导入 GIF、APNG、动态 WebP 时保留原有动画，静态图片继续按现有流程抠图。多张连续帧与视频导入仍在[宠物工坊规划](docs/pet-studio/requirements.md)中，尚未包含在本版。Windows 安装版可接收正式版原地更新；Windows 便携版与当前未签名、未公证的 macOS 安装包需手动下载安装。
 
-更新机制的适用范围和发布流程见[自动更新设计](docs/auto-update/requirements.md)。本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
+更新机制与发布流程见[自动更新设计](docs/auto-update/requirements.md)。本地数据与外部链接说明见[隐私说明](docs/privacy.md)。
 
 ## 许可
 
