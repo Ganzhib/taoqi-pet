@@ -4,7 +4,7 @@ import { useArtwork } from "../shared/useArtwork";
 import { CreatorPanel } from "./CreatorPanel";
 import "./market.css";
 
-const categories = ["全部", "打工中", "沙雕日常", "我的创作"];
+type MarketView = "discover" | "create" | "mine";
 
 interface CardProps {
   pet: CatalogPet;
@@ -77,7 +77,9 @@ function PetCard({ pet, active, onSelect, onRename, onRemove }: CardProps) {
 
 export function MarketApp() {
   const [catalog, setCatalog] = useState<PetCatalog | null>(null);
-  const [category, setCategory] = useState("全部");
+  const [view, setView] = useState<MarketView>(
+    new URLSearchParams(window.location.search).get("view") === "create" ? "create" : "discover",
+  );
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [importing, setImporting] = useState(false);
@@ -96,8 +98,16 @@ export function MarketApp() {
       setCatalog(next);
     });
     refresh().catch((failure: Error) => setError(failure.message));
-    return offCatalog;
+    const offView = window.petMarket.onView((next) => setView(next));
+    return () => {
+      offCatalog();
+      offView();
+    };
   }, [refresh]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
 
   async function select(id: string) {
     try {
@@ -139,7 +149,7 @@ export function MarketApp() {
     try {
       const imported = await window.petMarket.importPet();
       if (imported) {
-        setCategory("我的创作");
+        setView("mine");
         if (imported.animated) {
           setNotice("已保留素材原有动画，可以直接作为桌宠使用。");
         } else if (imported.cutout) {
@@ -158,13 +168,14 @@ export function MarketApp() {
   }
 
   async function created() {
-    setCategory("我的创作");
+    setView("mine");
     setCreatorOpen(false);
     await refresh();
     setError("");
   }
 
-  const visible = catalog?.pets.filter((pet) => category === "全部" || pet.category === category) ?? [];
+  const visible = catalog?.pets.filter((pet) =>
+    view === "mine" ? pet.source === "custom" : pet.source !== "custom") ?? [];
   const status = error || (catalog
     ? "共 " + catalog.pets.length + " 位小伙伴 · 当前陪伴：" +
       catalog.pets.find((pet) => pet.id === catalog.selectedId)!.name
@@ -174,41 +185,66 @@ export function MarketApp() {
     <>
       <header className="hero">
         <div className="hero-copy">
-          <span className="eyebrow">TAOQI PET MARKET</span>
-          <h1>八位小伙伴，今天是哪一只？</h1>
-          <p>企鹅、咕咕嘎嘎和六位动物伙伴，也欢迎带自己的图片来。</p>
+          <span className="eyebrow">TAOQI PET STUDIO</span>
+          <h1>{view === "create" ? "制作你的桌面伙伴" :
+            view === "mine" ? "我的宠物" : "发现会陪伴的伙伴"}</h1>
+          <p>{view === "create"
+            ? "从模板捏一只，或把自己的图片和动图带到桌面。"
+            : view === "mine"
+              ? "已保存的作品都在这里，点一下就能切换陪伴。"
+              : "咕咕嘎嘎、企鹅和六位动物伙伴，全部免费陪伴。"}</p>
           <span className="free-badge">全部免费 · 无账号 · 无付费解锁</span>
-        </div>
-        <div className="hero-actions">
-          <button id="open-creator" className="import-button" type="button"
-            aria-expanded={creatorOpen} onClick={() => setCreatorOpen((open) => !open)}>
-            ✦ 捏一个宠物
-          </button>
-          <button id="import-pet" className="import-button" type="button"
-            disabled={importing} onClick={importPet}>＋ 导入我的宠物</button>
         </div>
       </header>
       <main>
-        {creatorOpen && <CreatorPanel onCreated={created} onClose={() => setCreatorOpen(false)} />}
-        <nav className="filters" aria-label="宠物分类">
-          {categories.map((name) => (
-            <button type="button" key={name} data-category={name}
-              aria-pressed={category === name} onClick={() => setCategory(name)}>{name}</button>
-          ))}
+        <nav className="filters" aria-label="宠物工坊">
+          <button type="button" aria-pressed={view === "discover"}
+            onClick={() => setView("discover")}>发现伙伴</button>
+          <button type="button" aria-pressed={view === "create"}
+            onClick={() => setView("create")}>制作宠物</button>
+          <button type="button" aria-pressed={view === "mine"}
+            onClick={() => setView("mine")}>我的宠物</button>
         </nav>
-        <p id="status" className="status" role="status">{status}</p>
-        {notice && <p className="notice">{notice}</p>}
-        <section id="pet-grid" className="pet-grid" aria-label="宠物列表">
-          {visible.map((pet) => (
-            <PetCard key={pet.id} pet={pet} active={pet.id === catalog?.selectedId}
-              onSelect={select} onRename={rename} onRemove={remove} />
-          ))}
-          {catalog && visible.length === 0 && (
-            <p className="empty">这里还没有宠物。可以捏一个，也可以导入自己的图片。</p>
-          )}
-        </section>
+        {view === "create" ? (
+          <section className="studio" aria-label="制作宠物">
+            <div className="studio-options">
+              <article className="studio-option">
+                <span className="studio-icon" aria-hidden="true">✦</span>
+                <h2>从模板开始</h2>
+                <p>挑选小猫、小龙或团子，调整颜色和表情。保存后立即成为桌宠。</p>
+                <button id="open-creator" className="import-button" type="button"
+                  aria-expanded={creatorOpen} onClick={() => setCreatorOpen((open) => !open)}>
+                  捏一个宠物
+                </button>
+              </article>
+              <article className="studio-option">
+                <span className="studio-icon" aria-hidden="true">▣</span>
+                <h2>导入自己的素材</h2>
+                <p>支持单张 PNG、JPG、WebP，或 GIF、APNG、动态 WebP。现成动图保留原动画。</p>
+                <button id="import-pet" className="import-button" type="button"
+                  disabled={importing} onClick={importPet}>导入图片或动图</button>
+              </article>
+            </div>
+            {creatorOpen && <CreatorPanel onCreated={created} onClose={() => setCreatorOpen(false)} />}
+            <p className="studio-roadmap">多张连续帧和视频导入还在制作中，当前版本暂不支持。</p>
+          </section>
+        ) : (
+          <>
+            <p id="status" className="status" role="status">{status}</p>
+            {notice && <p className="notice">{notice}</p>}
+            <section id="pet-grid" className="pet-grid" aria-label="宠物列表">
+              {visible.map((pet) => (
+                <PetCard key={pet.id} pet={pet} active={pet.id === catalog?.selectedId}
+                  onSelect={select} onRename={rename} onRemove={remove} />
+              ))}
+              {catalog && visible.length === 0 && (
+                <p className="empty">这里还没有宠物。到“制作宠物”捏一个，或导入自己的图片。</p>
+              )}
+            </section>
+          </>
+        )}
       </main>
-      <footer>导入 PNG、APNG、JPG、GIF 或 WebP 图片，单张不超过 5 MB；动图保留原动画，静态图自动抠图。图片只保存在这台电脑上。</footer>
+      <footer>图片单张不超过 5 MB；动图保留原动画，静态图自动抠图。作品只保存在这台电脑上。</footer>
     </>
   );
 }

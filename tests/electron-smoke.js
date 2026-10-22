@@ -173,7 +173,7 @@ async function run() {
     const market = await marketOpened;
     market.on("pageerror", (error) => pageErrors.push("market: " + error.message));
     await market.locator(".pet-card").first().waitFor();
-    assert.equal(await market.title(), "淘气宠物市场");
+    assert.equal(await market.title(), "淘气宠物工坊");
     assert.equal(await market.locator(".pet-card").count(), 8);
 
     await market.locator(".pet-card").filter({ hasText: "发呆猫" })
@@ -194,14 +194,19 @@ async function run() {
     await application.evaluate(({ dialog }) => {
       dialog.showMessageBox = async () => ({ response: 1 });
     });
+    await pet.locator("#open-studio").click();
+    await market.locator("#open-creator").waitFor();
+    assert.equal(await market.getByRole("button", { name: "制作宠物" }).getAttribute("aria-pressed"),
+      "true", "桌宠上的制作入口应切换已打开的工坊窗口");
+    await market.waitForFunction(() => window.scrollY === 0);
+    await market.screenshot({ path: "artifacts/studio.png" });
     await market.locator("#open-creator").click();
     await market.locator("#creator-name").fill("星星团子");
     await market.getByRole("radio", { name: "团子" }).check();
     await market.getByRole("radio", { name: "星星眼" }).check();
     await market.locator("#create-pet").click();
     await market.waitForFunction(() =>
-      document.querySelector(".pet-card h2")?.textContent === "星星团子"
-    );
+      document.querySelector(".pet-card h2")?.textContent === "星星团子");
     await pet.waitForFunction(() =>
       document.getElementById("pet-art").src.startsWith("data:image/svg+xml")
     );
@@ -212,10 +217,12 @@ async function run() {
     await application.evaluate(({ dialog }, filePaths) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths });
     }, [imagePath]);
+    await market.getByRole("button", { name: "制作宠物" }).click();
     await market.locator("#import-pet").click();
     await market.locator(".pet-card h2").first().waitFor();
     await market.waitForFunction(() =>
-      document.querySelector('[data-category="我的创作"]').getAttribute("aria-pressed") === "true" &&
+      [...document.querySelectorAll(".filters button")].some((button) =>
+        button.textContent === "我的宠物" && button.getAttribute("aria-pressed") === "true") &&
       document.querySelectorAll(".pet-card").length === 1
     );
     await pet.waitForFunction(() => document.getElementById("pet").dataset.character.startsWith("custom-"));
@@ -238,6 +245,7 @@ async function run() {
       await application.evaluate(({ dialog }, filePaths) => {
         dialog.showOpenDialog = async () => ({ canceled: false, filePaths });
       }, [imagePath]);
+      await market.getByRole("button", { name: "制作宠物" }).click();
       await market.locator("#import-pet").click();
       await market.locator(".pet-card h2").first().waitFor();
       await market.getByText("已保留素材原有动画，可以直接作为桌宠使用。").waitFor();
@@ -252,6 +260,14 @@ async function run() {
     }
 
     await market.close();
+    const studioOpened = application.waitForEvent("window");
+    await pet.locator("#open-studio").click();
+    const studio = await studioOpened;
+    studio.on("pageerror", (error) => pageErrors.push("studio: " + error.message));
+    await studio.locator("#import-pet").waitFor();
+    assert.equal(await studio.title(), "淘气宠物工坊",
+      "桌宠制作入口应直接打开工坊制作页");
+    await studio.close();
     const homeOpened = application.waitForEvent("window");
     await pet.locator("#pet").press("h");
     const home = await homeOpened;

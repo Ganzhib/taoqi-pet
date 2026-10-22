@@ -364,9 +364,10 @@ async function removeCustomPet(id) {
   return true;
 }
 
-function openMarket() {
+function openMarket(view = "discover") {
   if (marketWindow && !marketWindow.isDestroyed()) {
     marketWindow.focus();
+    marketWindow.webContents.send("market:open-view", view);
     return;
   }
   marketWindow = new BrowserWindow({
@@ -374,7 +375,7 @@ function openMarket() {
     height: 640,
     minWidth: 680,
     minHeight: 500,
-    title: "淘气宠物市场",
+    title: "淘气宠物工坊",
     icon: ICON_PATH,
     autoHideMenuBar: true,
     webPreferences: {
@@ -385,7 +386,9 @@ function openMarket() {
     },
   });
   marketWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  marketWindow.loadFile(path.join(__dirname, "../../dist-ui/market.html"));
+  marketWindow.loadFile(path.join(__dirname, "../../dist-ui/market.html"), {
+    query: { view },
+  });
   marketWindow.on("closed", () => { marketWindow = null; });
 }
 
@@ -425,7 +428,7 @@ function showHelp() {
     type: "info",
     title: "淘气桌宠使用帮助",
     message: "陪伴，随时由你决定",
-    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。右键或点击系统托盘可在原地陪伴、自由散步和跟随鼠标之间切换。宠物市场里的角色全部免费，也可以导入自己的 PNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开市场，按 H 可进入小窝。安静模式会暂停移动和自动提示。工具铺只会在你点击后于应用内打开。",
+    detail: "单击、双击或长按宠物可以互动；拖动可以改变位置。点击桌宠旁的“制作”按钮，或从右键与托盘菜单进入宠物工坊，捏宠、导入自己的 PNG、APNG、JPG、GIF、WebP 图片。聚焦宠物后按 M 可打开工坊的发现伙伴页，按 H 可进入小窝。多张连续帧与视频导入暂未开放。安静模式会暂停移动和自动提示。工具铺只会在你点击后于应用内打开。",
     buttons: ["知道了"],
   });
 }
@@ -529,7 +532,8 @@ function menuTemplate() {
     ? Math.max(0, Math.ceil((settings.focusEndsAt - Date.now()) / 60000)) : 0;
   const items = [
     { label: petWindow.isVisible() ? "隐藏宠物" : "显示宠物", click: togglePetVisibility },
-    { label: "宠物市场…", click: openMarket },
+    { label: "制作宠物…", click: () => openMarket("create") },
+    { label: "发现伙伴…", click: () => openMarket() },
     { label: "淘气小窝…", click: openHome },
     { label: "快速切换角色", submenu: CHARACTERS.map((character) => ({
       label: character.name,
@@ -766,7 +770,8 @@ if (!app.requestSingleInstanceLock()) {
       return settings.bestCatch;
     });
     ipcMain.on("pet:show-menu", showPetMenu);
-    ipcMain.on("pet:open-market", openMarket);
+    ipcMain.on("pet:open-market", () => openMarket());
+    ipcMain.on("pet:open-studio", () => openMarket("create"));
     ipcMain.on("pet:open-home", openHome);
     ipcMain.on("pet:drag-start", beginDrag);
     ipcMain.on("pet:drag-move", moveDrag);

@@ -14,4 +14,9 @@ contextBridge.exposeInMainWorld("petMarket", {
     ipcRenderer.on("market:catalog", listener);
     return () => ipcRenderer.off("market:catalog", listener);
   },
+  onView: (callback) => {
+    const listener = (_event, view) => callback(view);
+    ipcRenderer.on("market:open-view", listener);
+    return () => ipcRenderer.off("market:open-view", listener);
+  },
 });

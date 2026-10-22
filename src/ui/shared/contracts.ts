@@ -73,6 +73,7 @@ interface PetBridge {
   setGugugagaState(id: string): Promise<boolean>;
   showMenu(): void;
   openMarket(): void;
+  openStudio(): void;
   openHome(): void;
   dragStart(): void;
   dragMove(): void;
@@ -93,6 +94,7 @@ interface MarketBridge {
   removePet(id: string): Promise<boolean>;
   renamePet(id: string, name: string): Promise<boolean>;
   onCatalog(callback: (catalog: PetCatalog) => void): () => void;
+  onView(callback: (view: "discover" | "create") => void): () => void;
 }
 
 interface HomeBridge {

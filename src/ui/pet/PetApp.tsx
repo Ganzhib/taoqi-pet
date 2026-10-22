@@ -304,8 +304,11 @@ export function PetApp() {
           </div>
         </>
       )}
+      <button id="open-studio" className="studio-shortcut" type="button"
+        aria-label="制作宠物" title="制作宠物"
+        onClick={() => window.taoqiPet.openStudio()}>✦ 制作</button>
       {!isGugugaga && (
-        <div className={"hint" + (hintHidden ? " hidden" : "")}>拖动我 · M 市场 · H 小窝</div>
+        <div className={"hint" + (hintHidden ? " hidden" : "")}>拖动我 · M 发现 · H 小窝</div>
       )}
     </main>
   );
