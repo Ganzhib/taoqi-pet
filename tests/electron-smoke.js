@@ -133,12 +133,18 @@ async function run() {
       getComputedStyle(element).pointerEvents), "auto", "悬浮桌宠时工具栏应可操作");
 
     await pet.locator("#pet").click();
+    await pet.keyboard.press("Tab");
     await pet.locator("#pet").focus();
     const focusedStyle = await pet.evaluate(() => ({
       outlineStyle: getComputedStyle(document.getElementById("pet")).outlineStyle,
+      petFilter: getComputedStyle(document.getElementById("pet")).filter,
       artworkFilter: getComputedStyle(document.getElementById("pet-art")).filter,
+      focusMarker: getComputedStyle(document.getElementById("pet"), "::before").content,
     }));
     assert.equal(focusedStyle.outlineStyle, "none", "宠物获得焦点后不应出现矩形轮廓");
+    assert.equal(focusedStyle.petFilter, "none", "宠物不应向透明桌面投下轮廓残影");
+    assert.equal(focusedStyle.artworkFilter, "none", "键盘焦点不应在素材边缘产生紫色重影");
+    assert.equal(focusedStyle.focusMarker, '""', "键盘焦点应有独立提示");
     assert.ok((await pet.locator("#pet-art").getAttribute("src")).startsWith(
       "pet://pets/gugugaga-idle.webm"), "点击角色只互动，不应自动切换造型");
     await pet.locator("#bubble.visible").waitFor();

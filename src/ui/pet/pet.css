@@ -76,12 +76,22 @@ html, body {
   cursor: grab;
   outline: none;
   touch-action: none;
-  filter: drop-shadow(0 9px 5px #34264a30);
 }
 
 .pet:active { cursor: grabbing; }
-.pet:focus-visible { outline: none; }
-.pet:focus-visible .pet-art { filter: drop-shadow(0 0 3px #8670d0aa); }
+.pet:focus-visible::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  top: 4px;
+  left: 4px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #806bc5;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+}
 .pet.has-state-switcher { bottom: 41px; }
 
 .pet-art {
@@ -259,7 +269,7 @@ html, body {
 .pet[data-reaction="look"] .pet-art { animation: look-around 1.4s ease-in-out; }
 .pet[data-reaction="waddle"] .pet-art { animation: penguin-waddle .3s ease-in-out 6 alternate; }
 .pet[data-reaction="slide"] .pet-art { animation: penguin-slide 1.4s cubic-bezier(.2, .8, .2, 1); }
-.pet.focused { filter: drop-shadow(0 9px 5px #34264a30) saturate(.7); }
+.pet.focused { filter: saturate(.7); }
 .pet.quiet:not([data-reaction]) .pet-art { animation: none; }
 
 .pet::after {
