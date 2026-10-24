@@ -1,0 +1,61 @@
+name: Cleanup old Actions artifacts
+
+on:
+  schedule:
+    - cron: "17 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: cleanup-actions-storage
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep only the newest artifact for each name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const artifacts = await github.paginate(
+              github.rest.actions.listArtifactsForRepo,
+              { owner, repo, per_page: 100 }
+            );
+
+            artifacts.sort(
+              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            const newestNames = new Set();
+            let deletedCount = 0;
+            let releasedBytes = 0;
+
+            for (const artifact of artifacts) {
+              if (artifact.expired) continue;
+
+              if (!newestNames.has(artifact.name)) {
+                newestNames.add(artifact.name);
+                core.info(`Keeping newest artifact: ${artifact.name} (#${artifact.id})`);
+                continue;
+              }
+
+              await github.rest.actions.deleteArtifact({
+                owner,
+                repo,
+                artifact_id: artifact.id,
+              });
+              deletedCount += 1;
+              releasedBytes += artifact.size_in_bytes || 0;
+              core.info(`Deleted duplicate artifact: ${artifact.name} (#${artifact.id})`);
+            }
+
+            const releasedGiB = (releasedBytes / 1024 / 1024 / 1024).toFixed(2);
+            await core.summary
+              .addHeading('Actions storage cleanup')
+              .addRaw(`Deleted ${deletedCount} duplicate artifacts and released about ${releasedGiB} GiB.`)
+              .write();
